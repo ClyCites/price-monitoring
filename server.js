@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
+import priceRoutes from './src/routes/priceRoutes.js';
 import { errorHandler, notFound } from './src/middleware/errorMiddleware.js';
 
 dotenv.config();
@@ -11,6 +12,7 @@ const app = express();
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/price', priceRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
