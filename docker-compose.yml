@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+  express-app:
+    build:
+      context: ./express-app
+    container_name: express-app
+    ports:
+      - "5000:5000"  # Expose the container's port 5000 to the host machine's port 5000
+    environment:
+      # Load environment variables from the host system or .env file
+      - MONGO_URI=${MONGO_URI}  # MongoDB URI from .env
+      - JWT_SECRET=${JWT_SECRET}  # JWT Secret from .env
+    env_file:
+      - .env  # Make sure to load environment variables from the .env file
+    depends_on:
+      - flask-app  # If you have the Flask app to run together
+
+  flask-app:
+    build:
+      context: ./flask-app  # Directory where your Flask app is located
+    container_name: flask-app
+    ports:
+      - "5001:5001"  # Expose Flask app's port
+    environment:
+      - FLASK_ENV=production  # Set Flask environment variables
+    volumes:
+      - ./flask-app:/usr/src/app
+    command: python app.py  # Start Flask app
+
+networks:
+  default:
+    external:
+      name: my-network  # Optional, define a custom network for communication between containers
