@@ -306,7 +306,6 @@ export const getPriceVolatility = async (req, res) => {
       return res.status(200).json({ message: 'Not enough data for volatility analysis' });
     }
 
-    // Calculate standard deviation of prices
     const prices = historicalPrices.map(p => p.price);
     const mean = prices.reduce((sum, p) => sum + p, 0) / prices.length;
     const variance = prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length;
