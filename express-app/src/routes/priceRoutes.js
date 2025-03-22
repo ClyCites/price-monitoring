@@ -5,7 +5,10 @@ import {
   getPriceById,
   updatePrice,
   deletePrice,
-  getPriceTrends
+  getPriceTrends,
+  predictPrice,
+  checkPriceAlerts,
+  compareMarketPrices
 } from '../controllers/priceController.js';
 
 const router = express.Router();
@@ -29,7 +32,16 @@ router.put('/:id', updatePrice);
 // 5️⃣ Delete a Price Entry
 router.delete('/:id', deletePrice);
 
-// 6️⃣ Get Price Trends & Analytics
+// 6️⃣ Get Price Trends & Moving Averages
 router.get('/trends/:product/:market', getPriceTrends);
+
+// 7️⃣ Predict Future Prices (AI Integration)
+router.post('/predict', predictPrice);
+
+// 8️⃣ Check Price Alerts (Threshold Monitoring)
+router.get('/alerts/check', checkPriceAlerts);
+
+// 9️⃣ Compare Prices Across Different Markets
+router.get('/compare', compareMarketPrices);
 
 export default router;

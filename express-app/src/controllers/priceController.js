@@ -1,18 +1,17 @@
 import Price from '../models/Price.js';
+import axios from 'axios';
 
 // =========================
-// 1️⃣ Create a New Price Entry (Manual Data Entry)
+// 1️⃣ Add a New Price Entry (Manual Data Entry)
 // =========================
 export const addPrice = async (req, res) => {
   try {
-    const { product, market, price, currency, date, productType, quantity, unit } = req.body;
+    const { product, market, price, currency, date, productType, quantity, unit, alertThreshold } = req.body;
 
-    // Check if required fields exist
     if (!product || !market || !price || !date || !productType || !quantity || !unit) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Create new price entry
     const newPrice = new Price({
       product,
       market,
@@ -22,7 +21,8 @@ export const addPrice = async (req, res) => {
       productType,
       quantity,
       unit,
-      lastUpdated: new Date()
+      alertThreshold: alertThreshold || null,
+      lastUpdated: new Date(),
     });
 
     await newPrice.save();
@@ -34,27 +34,26 @@ export const addPrice = async (req, res) => {
 };
 
 // =========================
-// 2️⃣ Get Prices (Based on Product & Market)
+// 2️⃣ Get Prices (Filtered by Product & Market)
 // =========================
 export const getPrices = async (req, res) => {
   try {
     const { product, market } = req.query;
-
-    // Query based on product & market if provided
     const query = {};
+
     if (product) query.product = product;
     if (market) query.market = market;
 
     const prices = await Price.find(query).sort({ date: -1 });
-
     res.status(200).json(prices);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 // =========================
-// 3️⃣ Get Price by ID
+// 3️⃣ Get a Price Entry by ID
 // =========================
 export const getPriceById = async (req, res) => {
   try {
@@ -65,13 +64,14 @@ export const getPriceById = async (req, res) => {
     }
 
     res.status(200).json(price);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
 // =========================
-// 4️⃣ Update Price Entry
+// 4️⃣ Update a Price Entry
 // =========================
 export const updatePrice = async (req, res) => {
   try {
@@ -81,10 +81,9 @@ export const updatePrice = async (req, res) => {
       return res.status(404).json({ message: 'Price not found' });
     }
 
-    // Update fields if provided
     Object.assign(price, req.body, { lastUpdated: new Date() });
-
     await price.save();
+
     res.status(200).json({ message: 'Price updated successfully', price });
 
   } catch (error) {
@@ -112,25 +111,23 @@ export const deletePrice = async (req, res) => {
 };
 
 // =========================
-// 6️⃣ Get Price Trends & Analytics
+// 6️⃣ Get Price Trends & Moving Averages
 // =========================
 export const getPriceTrends = async (req, res) => {
   try {
-    const { product, market, days } = req.query;
-    const pastDays = days ? parseInt(days) : 30;
+    const { product, market, days = 30 } = req.query;
+    const pastDays = parseInt(days);
 
     if (!product || !market) {
       return res.status(400).json({ message: 'Product and market are required' });
     }
 
-    // Get historical prices
     const historicalPrices = await Price.find({
       product,
       market,
       date: { $gte: new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000) }
     }).sort({ date: 1 });
 
-    // Calculate trend percentage
     if (historicalPrices.length < 2) {
       return res.status(200).json({ message: 'Not enough data for trend analysis' });
     }
@@ -139,12 +136,105 @@ export const getPriceTrends = async (req, res) => {
     const latestPrice = historicalPrices[historicalPrices.length - 1].price;
     const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
 
+    const movingAverage = historicalPrices.map((entry, index, arr) => {
+      const slice = arr.slice(Math.max(0, index - 5), index + 1);
+      return {
+        date: entry.date,
+        avgPrice: slice.reduce((sum, e) => sum + e.price, 0) / slice.length
+      };
+    });
+
     res.status(200).json({
       product,
       market,
       trendPercentage: trendPercentage.toFixed(2),
+      movingAverage,
       historicalPrices
     });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =========================
+// 7️⃣ Predict Future Price (Uses ML Model)
+// =========================
+export const predictPrice = async (req, res) => {
+  try {
+    const { product, market, quantity, unit } = req.body;
+
+    if (!product || !market || !quantity || !unit) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const latestPrice = await Price.findOne({ product, market }).sort({ date: -1 });
+
+    if (!latestPrice) {
+      return res.status(404).json({ message: 'No price data available' });
+    }
+
+    const response = await axios.post('http://your-flask-service/predict', {
+      product,
+      market,
+      currentPrice: latestPrice.price,
+      quantity,
+      unit
+    });
+
+    res.status(200).json({ predictedPrice: response.data.predictedPrice });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =========================
+// 8️⃣ Check Price Alerts
+// =========================
+export const checkPriceAlerts = async (req, res) => {
+  try {
+    const { product, market } = req.query;
+    const priceEntries = await Price.find({ product, market }).sort({ date: -1 });
+
+    if (!priceEntries.length) {
+      return res.status(404).json({ message: 'No price data available' });
+    }
+
+    const latestPrice = priceEntries[0];
+
+    if (latestPrice.alertThreshold && latestPrice.price > latestPrice.alertThreshold) {
+      await Price.findByIdAndUpdate(latestPrice._id, { alertTriggered: true });
+      return res.status(200).json({
+        message: 'Price alert triggered',
+        price: latestPrice.price,
+        threshold: latestPrice.alertThreshold
+      });
+    }
+
+    res.status(200).json({ message: 'No alert triggered', price: latestPrice.price });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =========================
+// 9️⃣ Compare Prices Across Markets
+// =========================
+export const compareMarketPrices = async (req, res) => {
+  try {
+    const { product } = req.query;
+    if (!product) {
+      return res.status(400).json({ message: 'Product is required' });
+    }
+
+    const marketPrices = await Price.aggregate([
+      { $match: { product } },
+      { $group: { _id: '$market', avgPrice: { $avg: '$price' } } }
+    ]);
+
+    res.status(200).json(marketPrices);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
