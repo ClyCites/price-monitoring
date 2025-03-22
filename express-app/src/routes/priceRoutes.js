@@ -8,7 +8,14 @@ import {
   getPriceTrends,
   predictPrice,
   checkPriceAlerts,
-  compareMarketPrices
+  compareMarketPrices,
+  getHistoricalPrices,
+  getPriceVolatility,
+  bulkImportPrices,
+  getTopMarketsForProduct,
+  setUserPriceAlerts,
+  detectPriceAnomalies,
+  getAveragePricePerMarket
 } from '../controllers/priceController.js';
 
 const router = express.Router();
@@ -43,5 +50,26 @@ router.get('/alerts/check', checkPriceAlerts);
 
 // 9️⃣ Compare Prices Across Different Markets
 router.get('/compare', compareMarketPrices);
+
+// 🔟 Get Historical Prices for a Product Over Time
+router.get('/history/:product/:market', getHistoricalPrices);
+
+// 1️⃣1️⃣ Get Price Volatility Analysis (Price Fluctuations)
+router.get('/volatility/:product/:market', getPriceVolatility);
+
+// 1️⃣2️⃣ Bulk Import Prices (Batch Entry)
+router.post('/bulk-import', bulkImportPrices);
+
+// 1️⃣3️⃣ Get Top Markets for a Product (Best Prices)
+router.get('/top-markets/:product', getTopMarketsForProduct);
+
+// 1️⃣4️⃣ Set Custom Price Alerts for Users
+router.post('/alerts/set', setUserPriceAlerts);
+
+// 1️⃣5️⃣ Detect Price Anomalies (Sudden Spikes or Drops)
+router.get('/anomalies/:product/:market', detectPriceAnomalies);
+
+// 1️⃣6️⃣ Get Average Price Per Market (Market Insights)
+router.get('/average/:product', getAveragePricePerMarket);
 
 export default router;
