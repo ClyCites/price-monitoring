@@ -4,11 +4,13 @@ import connectDB from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
 import priceRoutes from './src/routes/priceRoutes.js';
 import { errorHandler, notFound } from './src/middleware/errorMiddleware.js';
+import cors from 'cors';
 
 dotenv.config();
 connectDB();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
