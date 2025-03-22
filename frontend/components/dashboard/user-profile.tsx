@@ -1,7 +1,11 @@
+"use client"
+
 import type React from "react"
-import { LogOut, MoveUpRight, Settings, Upload, FileText } from "lucide-react"
+
+import { LogOut, MoveUpRight, Settings, User, FileText } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useAuth } from "../auth/auth-provider"
 
 interface MenuItem {
   label: string
@@ -11,37 +15,19 @@ interface MenuItem {
   external?: boolean
 }
 
-interface UserProfileProps {
-  name?: string
-  role?: string
-  avatar?: string
-  subscription?: string
-}
+export default function UserProfile() {
+  const { user, logout } = useAuth()
 
-const defaultProfile = {
-  name: "Alex Johnson",
-  role: "Agricultural Analyst",
-  avatar: "/placeholder.svg?height=72&width=72",
-  subscription: "Premium",
-}
-
-export default function UserProfile({
-  name = defaultProfile.name,
-  role = defaultProfile.role,
-  avatar = defaultProfile.avatar,
-  subscription = defaultProfile.subscription,
-}: UserProfileProps = defaultProfile) {
   const menuItems: MenuItem[] = [
     {
-      label: "Subscription",
-      value: subscription,
-      href: "#",
-      icon: <Upload className="w-4 h-4" />,
+      label: "Profile",
+      href: "/profile",
+      icon: <User className="w-4 h-4" />,
       external: false,
     },
     {
       label: "Settings",
-      href: "#",
+      href: "/profile",
       icon: <Settings className="w-4 h-4" />,
     },
     {
@@ -52,6 +38,10 @@ export default function UserProfile({
     },
   ]
 
+  if (!user) {
+    return null
+  }
+
   return (
     <div className="w-full max-w-sm mx-auto">
       <div className="relative overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800">
@@ -59,8 +49,8 @@ export default function UserProfile({
           <div className="flex items-center gap-4 mb-8">
             <div className="relative shrink-0">
               <Image
-                src={avatar || "/placeholder.svg"}
-                alt={name}
+                src="/placeholder.svg?height=72&width=72"
+                alt={user.name}
                 width={72}
                 height={72}
                 className="rounded-full ring-4 ring-white dark:ring-zinc-900 object-cover"
@@ -70,8 +60,11 @@ export default function UserProfile({
 
             {/* Profile Info */}
             <div className="flex-1">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{name}</h2>
-              <p className="text-zinc-600 dark:text-zinc-400">{role}</p>
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">{user.name}</h2>
+              <p className="text-zinc-600 dark:text-zinc-400">{user.email}</p>
+              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                {user.role === "admin" ? "Administrator" : "User"}
+              </span>
             </div>
           </div>
           <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-6" />
@@ -81,8 +74,8 @@ export default function UserProfile({
                 key={item.label}
                 href={item.href}
                 className="flex items-center justify-between p-2 
-                                    hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
-                                    rounded-lg transition-colors duration-200"
+                                  hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
+                                  rounded-lg transition-colors duration-200"
               >
                 <div className="flex items-center gap-2">
                   {item.icon}
@@ -97,9 +90,10 @@ export default function UserProfile({
 
             <button
               type="button"
+              onClick={logout}
               className="w-full flex items-center justify-between p-2 
-                                hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
-                                rounded-lg transition-colors duration-200"
+                              hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
+                              rounded-lg transition-colors duration-200"
             >
               <div className="flex items-center gap-2">
                 <LogOut className="w-4 h-4" />

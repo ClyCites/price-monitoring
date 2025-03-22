@@ -3,9 +3,10 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Image from "next/image"
 import { Bell, ChevronRight } from "lucide-react"
-import UserProfile from "@/components/dashboard/user-profile"
+import UserProfile from "./user-profile"
 import Link from "next/link"
 import { ThemeToggle } from "../theme-toggle"
+import { useAuth } from "../auth/auth-provider"
 
 interface BreadcrumbItem {
   label: string
@@ -13,6 +14,8 @@ interface BreadcrumbItem {
 }
 
 export default function TopNav() {
+  const { user, isAuthenticated } = useAuth()
+
   const breadcrumbs: BreadcrumbItem[] = [
     { label: "ClyCites", href: "#" },
     { label: "Price Analytics", href: "#" },
@@ -48,24 +51,31 @@ export default function TopNav() {
 
         <ThemeToggle />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger className="focus:outline-none">
-            <Image
-              src="/placeholder.svg?height=28&width=28"
-              alt="User avatar"
-              width={28}
-              height={28}
-              className="rounded-full ring-2 ring-gray-200 dark:ring-[#2B2B30] sm:w-8 sm:h-8 cursor-pointer"
-            />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            sideOffset={8}
-            className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
-          >
-            <UserProfile />
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isAuthenticated && (
+          <DropdownMenu>
+            <DropdownMenuTrigger className="focus:outline-none">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden sm:block">
+                  {user?.name}
+                </span>
+                <Image
+                  src="/placeholder.svg?height=28&width=28"
+                  alt="User avatar"
+                  width={28}
+                  height={28}
+                  className="rounded-full ring-2 ring-gray-200 dark:ring-[#2B2B30] sm:w-8 sm:h-8 cursor-pointer"
+                />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={8}
+              className="w-[280px] sm:w-80 bg-background border-border rounded-lg shadow-lg"
+            >
+              <UserProfile />
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </nav>
   )

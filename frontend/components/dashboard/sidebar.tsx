@@ -15,13 +15,17 @@ import {
   Menu,
   BrainCircuit,
   Map,
+  LogIn,
+  UserPlus,
 } from "lucide-react"
 
 import { Home } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
+import { useAuth } from "../auth/auth-provider"
 
 export default function Sidebar() {
+  const { isAuthenticated } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   function handleNavigation() {
@@ -76,68 +80,88 @@ export default function Sidebar() {
           </Link>
 
           <div className="flex-1 overflow-y-auto py-4 px-4">
-            <div className="space-y-6">
-              <div>
-                <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Dashboard
-                </div>
-                <div className="space-y-1">
-                  <NavItem href="#" icon={Home}>
-                    Overview
-                  </NavItem>
-                  <NavItem href="#" icon={BarChart2}>
-                    Price Analytics
-                  </NavItem>
-                  <NavItem href="#" icon={LineChart}>
-                    Price Trends
-                  </NavItem>
-                  <NavItem href="#" icon={Map}>
-                    Regional Data
-                  </NavItem>
+            {!isAuthenticated ? (
+              <div className="space-y-6">
+                <div>
+                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Account
+                  </div>
+                  <div className="space-y-1">
+                    <NavItem href="/login" icon={LogIn}>
+                      Login
+                    </NavItem>
+                    <NavItem href="/register" icon={UserPlus}>
+                      Register
+                    </NavItem>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <div className="space-y-6">
+                <div>
+                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Dashboard
+                  </div>
+                  <div className="space-y-1">
+                    <NavItem href="/dashboard" icon={Home}>
+                      Overview
+                    </NavItem>
+                    <NavItem href="#" icon={BarChart2}>
+                      Price Analytics
+                    </NavItem>
+                    <NavItem href="#" icon={LineChart}>
+                      Price Trends
+                    </NavItem>
+                    <NavItem href="#" icon={Map}>
+                      Regional Data
+                    </NavItem>
+                  </div>
+                </div>
 
-              <div>
-                <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  AI Predictions
+                <div>
+                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    AI Predictions
+                  </div>
+                  <div className="space-y-1">
+                    <NavItem href="#" icon={BrainCircuit}>
+                      Price Forecasts
+                    </NavItem>
+                    <NavItem href="#" icon={TrendingUp}>
+                      Market Trends
+                    </NavItem>
+                    <NavItem href="#" icon={Wheat}>
+                      Crop Analysis
+                    </NavItem>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <NavItem href="#" icon={BrainCircuit}>
-                    Price Forecasts
-                  </NavItem>
-                  <NavItem href="#" icon={TrendingUp}>
-                    Market Trends
-                  </NavItem>
-                  <NavItem href="#" icon={Wheat}>
-                    Crop Analysis
-                  </NavItem>
-                </div>
-              </div>
 
-              <div>
-                <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                  Data Management
-                </div>
-                <div className="space-y-1">
-                  <NavItem href="#" icon={Upload}>
-                    Upload Data
-                  </NavItem>
-                  <NavItem href="#" icon={Database}>
-                    Data Sources
-                  </NavItem>
-                  <NavItem href="#" icon={Users2}>
-                    User Access
-                  </NavItem>
+                <div>
+                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Data Management
+                  </div>
+                  <div className="space-y-1">
+                    <NavItem href="#" icon={Upload}>
+                      Upload Data
+                    </NavItem>
+                    <NavItem href="#" icon={Database}>
+                      Data Sources
+                    </NavItem>
+                    <NavItem href="#" icon={Users2}>
+                      User Access
+                    </NavItem>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
 
           <div className="px-4 py-4 border-t border-gray-200 dark:border-[#1F1F23]">
             <div className="space-y-1">
-              <NavItem href="#" icon={Settings}>
-                Settings
-              </NavItem>
+              {isAuthenticated && (
+                <NavItem href="/profile" icon={Settings}>
+                  Profile Settings
+                </NavItem>
+              )}
               <NavItem href="#" icon={HelpCircle}>
                 Help
               </NavItem>
