@@ -1,7 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import { useAuth } from "./auth-provider"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -10,8 +8,8 @@ import { Wheat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useRegister } from "@/lib/hooks/use-auth"
 
 const registerSchema = z
   .object({
@@ -28,9 +26,7 @@ const registerSchema = z
 type RegisterFormValues = z.infer<typeof registerSchema>
 
 export default function RegisterForm() {
-  const { register } = useAuth()
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const { mutate: register, isPending } = useRegister()
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -42,17 +38,9 @@ export default function RegisterForm() {
     },
   })
 
-  async function onSubmit(data: RegisterFormValues) {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      await register(data.name, data.email, data.password)
-    } catch (err: any) {
-      setError(err.message || "Failed to register. Please try again.")
-    } finally {
-      setIsLoading(false)
-    }
+  function onSubmit(data: RegisterFormValues) {
+    const { confirmPassword, ...registerData } = data
+    register(registerData)
   }
 
   return (
@@ -67,11 +55,6 @@ export default function RegisterForm() {
         <CardDescription className="text-center">Enter your information to create your account</CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -126,8 +109,8 @@ export default function RegisterForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Creating account..." : "Create account"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Creating account..." : "Create account"}
             </Button>
           </form>
         </Form>

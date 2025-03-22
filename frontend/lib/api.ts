@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 
 // Response interceptor for error handling
 axiosInstance.interceptors.response.use(
-  (response) => response.data,
+  (response) => response,
   (error) => {
     const message = error.response?.data?.message || "Something went wrong. Please try again."
 

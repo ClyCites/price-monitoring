@@ -1,7 +1,5 @@
 "use client"
 
-import { useState } from "react"
-import { useAuth } from "./auth-provider"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -10,8 +8,8 @@ import { Wheat } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useLogin } from "@/lib/hooks/use-auth"
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -21,9 +19,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginForm() {
-  const { login } = useAuth()
-  const [error, setError] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const { mutate: login, isPending } = useLogin()
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -33,17 +29,8 @@ export default function LoginForm() {
     },
   })
 
-  async function onSubmit(data: LoginFormValues) {
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      await login(data.email, data.password)
-    } catch (err: any) {
-      setError(err.message || "Failed to login. Please check your credentials.")
-    } finally {
-      setIsLoading(false)
-    }
+  function onSubmit(data: LoginFormValues) {
+    login(data)
   }
 
   return (
@@ -58,11 +45,6 @@ export default function LoginForm() {
         <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -96,8 +78,8 @@ export default function LoginForm() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Signing in..." : "Sign in"}
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Signing in..." : "Sign in"}
             </Button>
           </form>
         </Form>

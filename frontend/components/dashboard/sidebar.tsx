@@ -22,10 +22,10 @@ import {
 import { Home } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
-import { useAuth } from "../auth/auth-provider"
+import { useAuth } from "@/lib/context/auth-context"
 
 export default function Sidebar() {
-  const { isAuthenticated } = useAuth()
+  const { user } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   function handleNavigation() {
@@ -80,7 +80,7 @@ export default function Sidebar() {
           </Link>
 
           <div className="flex-1 overflow-y-auto py-4 px-4">
-            {!isAuthenticated ? (
+            {!user ? (
               <div className="space-y-6">
                 <div>
                   <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
@@ -157,7 +157,7 @@ export default function Sidebar() {
 
           <div className="px-4 py-4 border-t border-gray-200 dark:border-[#1F1F23]">
             <div className="space-y-1">
-              {isAuthenticated && (
+              {user && (
                 <NavItem href="/profile" icon={Settings}>
                   Profile Settings
                 </NavItem>

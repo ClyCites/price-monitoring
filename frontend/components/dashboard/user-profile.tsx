@@ -5,7 +5,8 @@ import type React from "react"
 import { LogOut, MoveUpRight, Settings, User, FileText } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useAuth } from "../auth/auth-provider"
+import { useAuth } from "@/lib/context/auth-context"
+import { useLogout } from "@/lib/hooks/use-auth"
 
 interface MenuItem {
   label: string
@@ -16,7 +17,8 @@ interface MenuItem {
 }
 
 export default function UserProfile() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
+  const { mutate: logout, isPending } = useLogout()
 
   const menuItems: MenuItem[] = [
     {
@@ -74,8 +76,8 @@ export default function UserProfile() {
                 key={item.label}
                 href={item.href}
                 className="flex items-center justify-between p-2 
-                                  hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
-                                  rounded-lg transition-colors duration-200"
+                                hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
+                                rounded-lg transition-colors duration-200"
               >
                 <div className="flex items-center gap-2">
                   {item.icon}
@@ -90,14 +92,17 @@ export default function UserProfile() {
 
             <button
               type="button"
-              onClick={logout}
+              onClick={() => logout()}
+              disabled={isPending}
               className="w-full flex items-center justify-between p-2 
-                              hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
-                              rounded-lg transition-colors duration-200"
+                            hover:bg-zinc-50 dark:hover:bg-zinc-800/50 
+                            rounded-lg transition-colors duration-200"
             >
               <div className="flex items-center gap-2">
                 <LogOut className="w-4 h-4" />
-                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">Logout</span>
+                <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                  {isPending ? "Logging out..." : "Logout"}
+                </span>
               </div>
             </button>
           </div>

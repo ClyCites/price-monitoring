@@ -14,7 +14,7 @@ interface BreadcrumbItem {
 }
 
 export default function TopNav() {
-  const { user, isAuthenticated } = useAuth()
+  const { user } = useAuth()
 
   const breadcrumbs: BreadcrumbItem[] = [
     { label: "ClyCites", href: "#" },
@@ -51,7 +51,7 @@ export default function TopNav() {
 
         <ThemeToggle />
 
-        {isAuthenticated && (
+        {user && (
           <DropdownMenu>
             <DropdownMenuTrigger className="focus:outline-none">
               <div className="flex items-center gap-2">

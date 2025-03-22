@@ -42,12 +42,23 @@ export const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
-      res.json({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token: generateToken(user._id),
+      // res.json({
+      //   _id: user._id,
+      //   name: user.name,
+      //   email: user.email,
+      //   role: user.role,
+      //   token: generateToken(user._id),
+      // });
+      res.status(201).json({
+        success: true,
+        message: "Login successfully",
+        data: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token: generateToken(user._id),
+        },
       });
     } else {
       res.status(401).json({ message: 'Invalid email or password' });
