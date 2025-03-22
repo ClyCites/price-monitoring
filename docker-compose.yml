@@ -27,8 +27,3 @@ services:
     volumes:
       - ./flask-app:/usr/src/app
     command: python app.py  # Start Flask app
-
-networks:
-  default:
-    external:
-      name: my-network  # Optional, define a custom network for communication between containers

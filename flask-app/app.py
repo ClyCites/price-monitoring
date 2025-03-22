@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from sklearn.externals import joblib
+import joblib  # ✔️ CORRECT
 import os
 from scripts.train_model import train_model_on_data
 
