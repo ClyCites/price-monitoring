@@ -17,6 +17,7 @@ import {
   Map,
   LogIn,
   UserPlus,
+  House,
 } from "lucide-react"
 
 import { Home } from "lucide-react"
@@ -109,8 +110,11 @@ export default function Sidebar() {
                     <NavItem href="#" icon={BarChart2}>
                       Price Analytics
                     </NavItem>
-                    <NavItem href="#" icon={LineChart}>
+                    <NavItem href="/price-trends" icon={LineChart}>
                       Price Trends
+                    </NavItem>
+                    <NavItem href="/market-comparison" icon={House}>
+                      Market Comparison
                     </NavItem>
                     <NavItem href="#" icon={Map}>
                       Regional Data
