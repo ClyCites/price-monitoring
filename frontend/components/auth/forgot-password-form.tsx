@@ -27,7 +27,7 @@ export default function ForgotPasswordForm() {
   })
 
   function onSubmit(data: ForgotPasswordFormValues) {
-    forgotPassword(data)
+    forgotPassword(data.email)
   }
 
   return (
