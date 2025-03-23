@@ -4,6 +4,7 @@ import "./globals.css"
 import { Providers } from "@/components/providers"
 import { AuthProvider } from "@/lib/context/auth-context"
 import { Toaster } from "@/components/ui/sonner"
+import Layout from "@/components/dashboard/layout"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -21,7 +22,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            {children}
+            </AuthProvider>
           <Toaster position="top-right" />
         </Providers>
       </body>
