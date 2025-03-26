@@ -1,6 +1,8 @@
+import mongoose from 'mongoose';
 import Price from '../models/Price.js';
 import Product from '../models/Product.js';
 import Market from '../models/Market.js';
+import PriceAlert from '../models/PriceAlert.js';
 
 // =========================
 // 1️⃣ Add a New Price Entry (Manual Entry)
@@ -9,16 +11,19 @@ export const addPrice = async (req, res) => {
   try {
     const { product, market, price, currency, date, productType, quantity, unit } = req.body;
 
+    // Validate required fields
     if (!product || !market || !price || !date || !productType || !quantity || !unit) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
+    // Validate product and market existence
     const existingProduct = await Product.findById(product);
     if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
 
     const existingMarket = await Market.findById(market);
     if (!existingMarket) return res.status(404).json({ message: 'Market not found' });
 
+    // Create new price entry
     const newPrice = new Price({
       product,
       market,
@@ -28,7 +33,8 @@ export const addPrice = async (req, res) => {
       productType,
       quantity,
       unit,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
+      historicalPrices: [] // Initialize historical prices if needed
     });
 
     await newPrice.save();
@@ -76,6 +82,7 @@ export const getPriceById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 // =========================
 // 4️⃣ Update Price Entry
 // =========================
@@ -96,6 +103,7 @@ export const updatePrice = async (req, res) => {
       if (!existingMarket) return res.status(404).json({ message: 'Market not found' });
     }
 
+    // Update price entry
     Object.assign(price, req.body, { lastUpdated: new Date() });
     await price.save();
     res.status(200).json({ message: 'Price updated successfully', price });
@@ -185,6 +193,21 @@ export const bulkImportPrices = async (req, res) => {
       return res.status(400).json({ message: 'Invalid price data' });
     }
 
+    // Validate each price entry
+    for (const priceData of prices) {
+      const { product, market, price, date, productType, quantity, unit } = priceData;
+
+      if (!product || !market || !price || !date || !productType || !quantity || !unit) {
+        return res.status(400).json({ message: 'All fields are required for each price entry' });
+      }
+
+      const existingProduct = await Product.findById(product);
+      if (!existingProduct) return res.status(404).json({ message: `Product not found for ID: ${product}` });
+
+      const existingMarket = await Market.findById(market);
+      if (!existingMarket) return res.status(404).json({ message: `Market not found for ID: ${market}` });
+    }
+
     await Price.insertMany(prices);
     res.status(201).json({ message: 'Prices imported successfully' });
 
@@ -243,10 +266,26 @@ export const getTopMarketsForProduct = async (req, res) => {
 // =========================
 export const setUserPriceAlerts = async (req, res) => {
   try {
-    const { product, market, priceThreshold, userId } = req.body;
+    const { userId, product, market, priceThreshold } = req.body;
 
-    // Placeholder for saving user alerts in DB
-    res.status(200).json({ message: 'Price alert set successfully', product, market, priceThreshold, userId });
+    if (!userId || !product || !market || priceThreshold === undefined) {
+      return res.status(400).json({ message: 'User  ID, product, market, and price threshold are required' });
+    }
+
+    const existingAlert = await PriceAlert.findOne({ userId, product, market });
+    if (existingAlert) {
+      return res.status(400).json({ message: 'Price alert already exists for this product and market' });
+    }
+
+    const newAlert = new PriceAlert({
+      userId,
+      product,
+      market,
+      priceThreshold,
+    });
+
+    await newAlert.save();
+    res.status(201).json({ message: 'Price alert set successfully', alert: newAlert });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -254,7 +293,55 @@ export const setUserPriceAlerts = async (req, res) => {
 };
 
 // =========================
-// 12️⃣ Detect Price Anomalies (Fraud Detection)
+// 12️⃣ Check Price Alerts
+// =========================
+export const checkPriceAlerts = async (req, res) => {
+  try {
+    const { product, market } = req.query;
+
+    if (!product || !market) {
+      return res.status(400).json({ message: 'Product and market are required' });
+    }
+
+    const currentPrice = await Price.findOne({ product, market }).sort({ date: -1 });
+    if (!currentPrice) {
+      return res.status(404).json({ message: 'No price data found for this product and market' });
+    }
+
+    const alerts = await PriceAlert.find({ product, market, alertTriggered: false });
+
+    const triggeredAlerts = [];
+    for (const alert of alerts) {
+      if (currentPrice.price <= alert.priceThreshold) {
+        alert.alertTriggered = true;
+        await alert.save();
+        triggeredAlerts.push(alert);
+      }
+    }
+
+    res.status(200).json({ message: 'Price alerts checked', triggeredAlerts });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =========================
+// 13️⃣ Delete a Price Alert
+// =========================
+export const deletePriceAlert = async (req, res) => {
+  try {
+    const alert = await PriceAlert.findById(req.params.id);
+    if (!alert) return res.status(404).json({ message: 'Price alert not found' });
+
+    await alert.deleteOne();
+    res.status(200).json({ message: 'Price alert deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// =========================
+// 14️⃣ Detect Price Anomalies (Fraud Detection)
 // =========================
 export const detectPriceAnomalies = async (req, res) => {
   try {
@@ -267,7 +354,7 @@ export const detectPriceAnomalies = async (req, res) => {
 };
 
 // =========================
-// 13️⃣ Get Average Price Per Market
+// 15️⃣ Get Average Price Per Market
 // =========================
 export const getAveragePricePerMarket = async (req, res) => {
   try {
@@ -281,22 +368,10 @@ export const getAveragePricePerMarket = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-export const checkPriceAlerts = async (req, res) => {
-  try {
-    const { product, market, userId } = req.query;
 
-    if (!product || !market || !userId) {
-      return res.status(400).json({ message: 'Product, market, and user ID are required' });
-    }
-
-    // Fetch price alerts (Assuming you have a `PriceAlert` model)
-    const alerts = await PriceAlert.find({ product, market, userId });
-
-    res.status(200).json(alerts);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+// =========================
+// 16️⃣ Compare Market Prices
+// =========================
 export const compareMarketPrices = async (req, res) => {
   try {
     const { product } = req.query;
@@ -317,6 +392,10 @@ export const compareMarketPrices = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// =========================
+// 17️⃣ Get Price Volatility
+// =========================
 export const getPriceVolatility = async (req, res) => {
   try {
     const { product, market, days } = req.query;
