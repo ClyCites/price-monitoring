@@ -23,14 +23,14 @@ import {
 const router = express.Router();
 
 // Price Entry Routes
-router.post('/prices', addPrice); // Add a new price entry
-router.get('/prices', getPrices); // Get prices filtered by product and market
-router.get('/prices/:id', getPriceById); // Get price by ID
-router.put('/prices/:id', updatePrice); // Update a price entry
-router.delete('/prices/:id', deletePrice); // Delete a price entry
+router.post('/prices', addPrice);
+router.get('/prices', getPrices);
+router.get('/prices/:id', getPriceById);
+router.put('/prices/:id', updatePrice);
+router.delete('/prices/:id', deletePrice);
 
 // Price Trends & Predictions
-router.get('/prices/trends', getPriceTrends); // Get price trends
+router.get('/prices/trends', getPriceTrends);
 router.post('/prices/predict', predictPrice); // Predict future prices
 router.post('/prices/bulk-import', bulkImportPrices); // Bulk import prices
 router.get('/prices/historical', getHistoricalPrices); // Get historical prices
