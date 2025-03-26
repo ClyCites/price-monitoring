@@ -1,5 +1,6 @@
 import Price from '../models/Price.js';
-import mongoose from 'mongoose';
+import Product from '../models/Product.js';
+import Market from '../models/Market.js';
 
 // =========================
 // 1️⃣ Add a New Price Entry (Manual Entry)
@@ -11,6 +12,12 @@ export const addPrice = async (req, res) => {
     if (!product || !market || !price || !date || !productType || !quantity || !unit) {
       return res.status(400).json({ message: 'All fields are required' });
     }
+
+    const existingProduct = await Product.findById(product);
+    if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
+
+    const existingMarket = await Market.findById(market);
+    if (!existingMarket) return res.status(404).json({ message: 'Market not found' });
 
     const newPrice = new Price({
       product,
@@ -42,7 +49,11 @@ export const getPrices = async (req, res) => {
     if (product) query.product = product;
     if (market) query.market = market;
 
-    const prices = await Price.find(query).sort({ date: -1 });
+    const prices = await Price.find(query)
+      .sort({ date: -1 })
+      .populate('product', 'name category')
+      .populate('market', 'name location region');
+
     res.status(200).json(prices);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -54,7 +65,10 @@ export const getPrices = async (req, res) => {
 // =========================
 export const getPriceById = async (req, res) => {
   try {
-    const price = await Price.findById(req.params.id);
+    const price = await Price.findById(req.params.id)
+      .populate('product', 'name category')
+      .populate('market', 'name location region');
+
     if (!price) return res.status(404).json({ message: 'Price not found' });
 
     res.status(200).json(price);
@@ -62,18 +76,30 @@ export const getPriceById = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
-
 // =========================
 // 4️⃣ Update Price Entry
 // =========================
 export const updatePrice = async (req, res) => {
   try {
+    const { product, market } = req.body;
+
     const price = await Price.findById(req.params.id);
     if (!price) return res.status(404).json({ message: 'Price not found' });
+
+    // Validate product and market existence if updated
+    if (product) {
+      const existingProduct = await Product.findById(product);
+      if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
+    }
+    if (market) {
+      const existingMarket = await Market.findById(market);
+      if (!existingMarket) return res.status(404).json({ message: 'Market not found' });
+    }
 
     Object.assign(price, req.body, { lastUpdated: new Date() });
     await price.save();
     res.status(200).json({ message: 'Price updated successfully', price });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -195,8 +221,13 @@ export const getTopMarketsForProduct = async (req, res) => {
     if (!product) return res.status(400).json({ message: 'Product is required' });
 
     const markets = await Price.aggregate([
-      { $match: { product } },
-      { $group: { _id: '$market', avgPrice: { $avg: '$price' } } },
+      { $match: { product: new mongoose.Types.ObjectId(product) } },
+      { 
+        $group: { 
+          _id: '$market', 
+          avgPrice: { $avg: '$price' } 
+        } 
+      },
       { $sort: { avgPrice: -1 } }
     ]);
 

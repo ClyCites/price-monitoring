@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
 import priceRoutes from './src/routes/priceRoutes.js';
+import marketRoutes from './src/routes/marketRoutes.js';
 import { errorHandler, notFound } from './src/middleware/errorMiddleware.js';
 import cors from 'cors';
 
@@ -15,6 +16,7 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/prices', priceRoutes);
+app.use('/api/markets', marketRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
