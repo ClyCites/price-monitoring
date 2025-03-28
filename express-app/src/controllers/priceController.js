@@ -293,36 +293,57 @@ export const setUserPriceAlerts = async (req, res) => {
 
 // =========================
 // 12️⃣ Check Price Alerts
-// =========================
+
 export const checkPriceAlerts = async (req, res) => {
   try {
-    const { product, market } = req.query;
+    const { userId } = req.query;
 
-    if (!product || !market) {
-      return res.status(400).json({ message: 'Product and market are required' });
+    // Step 1: Validate input
+    if (!userId) {
+      return res.status(400).json({ message: 'UserId is required' });
     }
 
-    const currentPrice = await Price.findOne({ product, market }).sort({ date: -1 });
-    if (!currentPrice) {
-      return res.status(404).json({ message: 'No price data found for this product and market' });
+    // Step 2: Fetch all untriggered price alerts for the given user
+    const alerts = await PriceAlert.find({ userId, alertTriggered: false });
+    if (!alerts.length) {
+      return res.status(200).json({ message: 'No active price alerts for this user' });
     }
 
-    const alerts = await PriceAlert.find({ product, market, alertTriggered: false });
-
+    // Step 3: For each alert, check if the current price has reached the threshold
     const triggeredAlerts = [];
     for (const alert of alerts) {
-      if (currentPrice.price <= alert.priceThreshold) {
+      const { product, market, priceThreshold } = alert;
+
+      // Fetch the most recent price for the product and market
+      const currentPrice = await Price.findOne({ product, market }).sort({ date: -1 }); // Assuming price has a date field
+      if (!currentPrice) {
+        continue; // Skip if no price data found for this product and market
+      }
+
+      // Check if the current price is below or equal to the price threshold
+      if (currentPrice.price <= priceThreshold) {
         alert.alertTriggered = true;
-        await alert.save();
-        triggeredAlerts.push(alert);
+        await alert.save(); // Mark the alert as triggered
+        triggeredAlerts.push(alert); // Add the triggered alert to the response array
       }
     }
 
-    res.status(200).json({ message: 'Price alerts checked', triggeredAlerts });
+    // Step 4: Send the response
+    if (triggeredAlerts.length > 0) {
+      return res.status(200).json({
+        message: 'Price alerts checked and triggered',
+        triggeredAlerts,
+      });
+    } else {
+      return res.status(200).json({ message: 'No alerts triggered, prices are still above the threshold' });
+    }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error checking price alerts:', error);
+    return res.status(500).json({ message: error.message });
   }
 };
+
+
 
 // =========================
 // 13️⃣ Delete a Price Alert

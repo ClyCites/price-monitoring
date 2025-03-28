@@ -37,7 +37,7 @@ router.get('/top-markets', getTopMarketsForProduct); // Get top markets for a pr
 
 // Price Alerts
 router.post('/alerts', setUserPriceAlerts); // Set user price alerts
-router.get('/alerts/check', checkPriceAlerts); // Check price alerts
+router.get('/alerts', checkPriceAlerts); // Check price alerts
 router.delete('/alerts/:id', deletePriceAlert); // Delete a price alert
 
 // Additional Functionalities
