@@ -30,8 +30,8 @@ router.delete('/:id', deletePrice);
 
 // Price Trends & Predictions
 router.get('/trends', getPriceTrends);
-router.post('/predict', predictPrice); // Predict future prices
-router.post('/bulk-import', bulkImportPrices); // Bulk import prices
+router.post('/predict', predictPrice);
+router.post('/bulk-import', bulkImportPrices);
 router.get('/historical', getHistoricalPrices); // Get historical prices
 router.get('/top-markets', getTopMarketsForProduct); // Get top markets for a product
 
