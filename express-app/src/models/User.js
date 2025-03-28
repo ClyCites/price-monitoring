@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { profile } from 'console';
 
 const userSchema = mongoose.Schema(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    profilePicture: { type: String, default: 'https://res.cloudinary.com/dkkgmzpqd/image/upload/v1626826994/default-profile-picture.jpg' },
     password: { type: String, required: true },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     permissions: { type: [String], default: [] },

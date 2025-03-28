@@ -10,7 +10,7 @@ const generateToken = (id) => {
 
 // Register User
 export const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, profilePicture, password, role } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -19,14 +19,14 @@ export const registerUser = async (req, res) => {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    const user = await User.create({ name, email, password, role: role || 'user' });
+    const user = await User.create({ name, email, profilePicture, password, role: role || 'user' });
 
     // Send Welcome Email
     await sendEmail(email, 'Welcome to Price Tracker', 'welcome', { name });
 
     res.status(201).json({
       message: 'User registered successfully',
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role },
+      user: { _id: user._id, name: user.name, profilePicture:user.profilePicture, email: user.email, role: user.role },
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -56,6 +56,7 @@ export const loginUser = async (req, res) => {
           id: user._id,
           name: user.name,
           email: user.email,
+          profilePicture: user.profilePicture,
           role: user.role,
           token: generateToken(user._id),
         },
@@ -134,6 +135,7 @@ export const getUserProfile = async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
+      profilePicture: user.profilePicture,
       role: user.role,
     });
   } else {
