@@ -24,8 +24,7 @@ const router = express.Router();
 
 // Price Entry Routes
 router.post('/', addPrice);
-router.get('/', getPrices);
-router.get('/:id', getPriceById);
+router.get('/', getPrices);;
 router.put('/:id', updatePrice);
 router.delete('/:id', deletePrice);
 
@@ -46,5 +45,7 @@ router.get('/anomalies', detectPriceAnomalies); // Detect price anomalies
 router.get('/average', getAveragePricePerMarket); // Get average price per market
 router.get('/compare', compareMarketPrices); // Compare market prices
 router.get('/volatility', getPriceVolatility); // Get price volatility
+
+router.get('/:id', getPriceById)
 
 export default router;
