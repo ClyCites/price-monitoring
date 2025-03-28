@@ -133,16 +133,15 @@ export const deletePrice = async (req, res) => {
 // =========================
 export const getPriceTrends = async (req, res) => {
   try {
-    const { product, market, days } = req.query;
+    const { product, days } = req.query;
     const pastDays = days ? parseInt(days) : 30;
 
-    if (!product || !market) {
+    if (!product) {
       return res.status(400).json({ message: 'Product and market are required' });
     }
 
     const historicalPrices = await Price.find({
       product,
-      market,
       date: { $gte: new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000) }
     }).sort({ date: 1 });
 
@@ -154,7 +153,7 @@ export const getPriceTrends = async (req, res) => {
     const latestPrice = historicalPrices[historicalPrices.length - 1].price;
     const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
 
-    res.status(200).json({ product, market, trendPercentage: trendPercentage.toFixed(2), historicalPrices });
+    res.status(200).json({ product, trendPercentage: trendPercentage.toFixed(2), historicalPrices });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
