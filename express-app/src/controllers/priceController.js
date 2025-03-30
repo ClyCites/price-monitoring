@@ -133,32 +133,91 @@ export const deletePrice = async (req, res) => {
 // =========================
 export const getPriceTrends = async (req, res) => {
   try {
-    const { product, days } = req.query;
+    const { product, market, days } = req.query;
     const pastDays = days ? parseInt(days) : 30;
 
-    if (!product) {
+    if (!product || !market) {
       return res.status(400).json({ message: 'Product and market are required' });
     }
 
+    if (!mongoose.Types.ObjectId.isValid(product) || !mongoose.Types.ObjectId.isValid(market)) {
+      return res.status(400).json({ message: 'Invalid product or market ID' });
+    }
+
+    // Fetch historical prices within the specified time frame
     const historicalPrices = await Price.find({
       product,
+      market,
       date: { $gte: new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000) }
     }).sort({ date: 1 });
 
     if (historicalPrices.length < 2) {
-      return res.status(200).json({ message: 'Not enough data for trend analysis' });
+      return res.status(200).json({ message: 'Not enough data for trend analysis', historicalPrices });
     }
 
+    // Extract price trend
     const firstPrice = historicalPrices[0].price;
     const latestPrice = historicalPrices[historicalPrices.length - 1].price;
     const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
 
-    res.status(200).json({ product, trendPercentage: trendPercentage.toFixed(2), historicalPrices });
+    // Determine price movement direction
+    const trendDirection = trendPercentage > 0 ? 'increasing' : trendPercentage < 0 ? 'decreasing' : 'stable';
 
+    res.status(200).json({
+      product,
+      market,
+      trendPercentage: trendPercentage.toFixed(2),
+      trendDirection,
+      historicalPrices
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching price trends:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 };
+
+export const getTrendingProducts = async (req, res) => {
+  try {
+    const days = req.query.days ? parseInt(req.query.days) : 30;
+
+    // Aggregate products with the highest price increase
+    const trendingProducts = await Price.aggregate([
+      {
+        $match: {
+          date: { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) }
+        }
+      },
+      {
+        $group: {
+          _id: "$product",
+          firstPrice: { $first: "$price" },
+          latestPrice: { $last: "$price" }
+        }
+      },
+      {
+        $project: {
+          product: "$_id",
+          trendPercentage: {
+            $multiply: [
+              {
+                $divide: [{ $subtract: ["$latestPrice", "$firstPrice"] }, "$firstPrice"]
+              },
+              100
+            ]
+          }
+        }
+      },
+      { $sort: { trendPercentage: -1 } }, // Sort by highest increase
+      { $limit: 10 } // Return top 10 trending products
+    ]);
+
+    res.status(200).json(trendingProducts);
+  } catch (error) {
+    console.error("Error fetching trending products:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 
 // =========================
 // 7️⃣ Predict Future Prices (AI Model Integration)
