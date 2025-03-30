@@ -273,8 +273,8 @@ export const getTrendingProducts = async (req, res) => {
           latestPrice: "$latestPrice"
         }
       },
-      { $sort: { trendPercentage: -1 } }, // Sort by highest trending percentage
-      { $limit: 10 } // Limit to top 10 trending products
+      { $sort: { trendPercentage: -1 } },
+      { $limit: 10 }
     ]);
 
     // Fetch product details and include more info such as category, description, image
