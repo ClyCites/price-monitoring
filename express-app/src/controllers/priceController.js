@@ -228,7 +228,7 @@ export const getTrendingProducts = async (req, res) => {
   try {
     const days = req.query.days ? parseInt(req.query.days) : 30;
 
-    // Aggregate products with the highest price increase
+    // Aggregate price trends for products
     const trendingProducts = await Price.aggregate([
       {
         $match: {
@@ -244,7 +244,7 @@ export const getTrendingProducts = async (req, res) => {
       },
       {
         $project: {
-          product: "$_id",
+          productId: "$_id",
           trendPercentage: {
             $multiply: [
               {
@@ -252,20 +252,35 @@ export const getTrendingProducts = async (req, res) => {
               },
               100
             ]
-          }
+          },
+          latestPrice: "$latestPrice"
         }
       },
-      { $sort: { trendPercentage: -1 } }, // Sort by highest increase
-      { $limit: 10 } // Return top 10 trending products
+      { $sort: { trendPercentage: -1 } }, // Sort by highest trending percentage
+      { $limit: 10 } // Limit to top 10 trending products
     ]);
 
-    res.status(200).json(trendingProducts);
+    // Fetch product details
+    const productIds = trendingProducts.map((p) => p.productId);
+    const products = await Product.find({ _id: { $in: productIds } }).select("name");
+
+    // Merge product details
+    const response = trendingProducts.map((trend) => {
+      const product = products.find((p) => p._id.toString() === trend.productId.toString());
+      return {
+        productId: trend.productId,
+        productName: product?.name || "Unknown",
+        currentPrice: trend.latestPrice || 0,
+        trendPercentage: trend.trendPercentage.toFixed(2)
+      };
+    });
+
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching trending products:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
-
 
 // =========================
 // 7️⃣ Predict Future Prices (AI Model Integration)
