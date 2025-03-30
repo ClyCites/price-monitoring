@@ -285,7 +285,7 @@ export const getTrendingProducts = async (req, res) => {
     const response = trendingProducts.map((trend) => {
       const product = products.find((p) => p._id.toString() === trend.productId.toString());
       return {
-        productId: trend.productId,
+        id: trend.productId,
         productName: product?.name || "Unknown",
         productCategory: product?.category || "Uncategorized",
         productDescription: product?.description || "No description available",

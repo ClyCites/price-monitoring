@@ -11,7 +11,7 @@ const priceSchema = new mongoose.Schema({
 
   productType: { type: String, enum: ['solid', 'liquid'], required: true },
   quantity: { type: Number, required: true },
-  unit: { type: String, required: true, enum: ['kg', 'liters', 'grams', 'pieces'] }, // More flexible units
+  unit: { type: String, required: true, enum: ['kg', 'liters', 'grams', 'pieces'] },
 
   predictedPrice: { type: Number, default: null },
   predictionDate: { type: Date, default: null },
