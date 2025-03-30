@@ -189,39 +189,74 @@ export const getProductTrend = async (req, res) => {
       return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    // Fetch price records directly from the Price schema within the given time range
-    const prices = await Price.find({
-      product,
-      date: { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) }
-    }).sort({ date: 1 }); // Sorting to get the first and latest prices correctly
+    // Calculate the date range for the query
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    if (prices.length < 2) {
-      return res.status(200).json({ message: "Not enough data for trend analysis", prices });
+    // Use aggregation to calculate trend data
+    const result = await Price.aggregate([
+      {
+        $match: {
+          product: new mongoose.Types.ObjectId(product),
+          date: { $gte: startDate }
+        }
+      },
+      {
+        $sort: { date: 1 }
+      },
+      {
+        $group: {
+          _id: "$product",
+          firstPrice: { $first: "$price" },
+          latestPrice: { $last: "$price" },
+          highestPrice: { $max: "$price" },
+          lowestPrice: { $min: "$price" },
+          prices: { $push: "$price" }
+        }
+      },
+      {
+        $project: {
+          trendPercentage: {
+            $multiply: [
+              {
+                $divide: [{ $subtract: ["$latestPrice", "$firstPrice"] }, "$firstPrice"]
+              },
+              100
+            ]
+          },
+          trendDirection: {
+            $cond: [
+              { $gt: ["$trendPercentage", 0] },
+              "increasing",
+              { $cond: [{ $lt: ["$trendPercentage", 0] }, "decreasing", "stable"] }
+            ]
+          },
+          highestPrice: 1,
+          lowestPrice: 1,
+          prices: 1
+        }
+      }
+    ]);
+
+    if (result.length === 0) {
+      return res.status(200).json({ message: "Not enough data for trend analysis" });
     }
 
-    // Extract first and last price for trend calculation
-    const firstPrice = prices[0].price;
-    const latestPrice = prices[prices.length - 1].price;
-    const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
-    const trendDirection = trendPercentage > 0 ? "increasing" : trendPercentage < 0 ? "decreasing" : "stable";
-
-    // Find highest and lowest prices in the time range
-    const highestPrice = Math.max(...prices.map((p) => p.price));
-    const lowestPrice = Math.min(...prices.map((p) => p.price));
+    const trendData = result[0];
 
     res.status(200).json({
       product,
-      trendPercentage: trendPercentage.toFixed(2),
-      trendDirection,
-      highestPrice,
-      lowestPrice,
-      prices
+      trendPercentage: trendData.trendPercentage.toFixed(2),
+      trendDirection: trendData.trendDirection,
+      highestPrice: trendData.highestPrice,
+      lowestPrice: trendData.lowestPrice,
+      prices: trendData.prices
     });
   } catch (error) {
     console.error("Error fetching product trend:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 
 
