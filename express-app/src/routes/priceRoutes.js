@@ -20,6 +20,7 @@ import {
   getPriceVolatility,
   getTrendingProducts,
   getProductTrend,
+  getPriceSummary,
 } from '../controllers/priceController.js';
 
 const router = express.Router();
@@ -49,7 +50,7 @@ router.get('/compare', compareMarketPrices); // Compare market prices
 router.get('/volatility', getPriceVolatility); // Get price volatility
 router.get('/trends/popular', getTrendingProducts);
 router.get('/trends/product', getProductTrend);
-
+router.get('/price-summary/:productId', getPriceSummary);
 
 
 router.get('/:id', getPriceById)

@@ -485,6 +485,54 @@ export const checkPriceAlerts = async (req, res) => {
   }
 };
 
+export const getPriceSummary = async (req, res) => {
+  const { productId } = req.params;  // Assuming productId is passed as a parameter in the URL
+
+  try {
+    // Fetch the product details by ID
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    // Fetch the latest price for the product (latest price is the one with the most recent date)
+    const latestPrice = await Price.findOne({ product: product._id })
+      .sort({ date: -1 })  // Sort by date descending to get the latest price
+      .limit(1);
+
+    if (!latestPrice) {
+      return res.status(404).json({ message: 'Price data not found for the product' });
+    }
+
+    // Calculate price change and price change percentage
+    let priceChange = 0;
+    let priceChangePercentage = 0;
+
+    // Check if there are historical prices to calculate change
+    if (latestPrice.historicalPrices.length > 1) {
+      const previousPrice = latestPrice.historicalPrices[latestPrice.historicalPrices.length - 2].price;
+
+      priceChange = latestPrice.price - previousPrice;
+      priceChangePercentage = ((priceChange / previousPrice) * 100).toFixed(2);
+    }
+
+    // Prepare the response object (PriceSummary)
+    const priceSummary = {
+      product: product.name,
+      currentPrice: latestPrice.price,
+      priceChange: priceChange,
+      priceChangePercentage: priceChangePercentage
+    };
+
+    // Send the response
+    return res.status(200).json(priceSummary);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'Server error' });
+  }
+};
+
 
 
 // =========================
