@@ -226,13 +226,30 @@ export const getProductTrend = async (req, res) => {
 
 export const getTrendingProducts = async (req, res) => {
   try {
+    // Parse the time range and calculate the date range
     const days = req.query.days ? parseInt(req.query.days) : 30;
+    const rangeType = req.query.range || "days"; // 'days', 'weeks', 'months', 'years'
+    let dateRange;
+
+    switch (rangeType) {
+      case "weeks":
+        dateRange = Date.now() - (days * 7 * 24 * 60 * 60 * 1000);
+        break;
+      case "months":
+        dateRange = Date.now() - (days * 30 * 24 * 60 * 60 * 1000);
+        break;
+      case "years":
+        dateRange = Date.now() - (days * 365 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        dateRange = Date.now() - (days * 24 * 60 * 60 * 1000);
+    }
 
     // Aggregate price trends for products
     const trendingProducts = await Price.aggregate([
       {
         $match: {
-          date: { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) }
+          date: { $gte: new Date(dateRange) }
         }
       },
       {
@@ -260,9 +277,9 @@ export const getTrendingProducts = async (req, res) => {
       { $limit: 10 } // Limit to top 10 trending products
     ]);
 
-    // Fetch product details
+    // Fetch product details and include more info such as category, description, image
     const productIds = trendingProducts.map((p) => p.productId);
-    const products = await Product.find({ _id: { $in: productIds } }).select("name");
+    const products = await Product.find({ _id: { $in: productIds } }).select("name category description image");
 
     // Merge product details
     const response = trendingProducts.map((trend) => {
@@ -270,6 +287,8 @@ export const getTrendingProducts = async (req, res) => {
       return {
         productId: trend.productId,
         productName: product?.name || "Unknown",
+        productCategory: product?.category || "Uncategorized",
+        productDescription: product?.description || "No description available",
         currentPrice: trend.latestPrice || 0,
         trendPercentage: trend.trendPercentage.toFixed(2)
       };
@@ -281,6 +300,7 @@ export const getTrendingProducts = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 // =========================
 // 7️⃣ Predict Future Prices (AI Model Integration)

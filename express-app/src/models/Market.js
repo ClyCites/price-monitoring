@@ -8,6 +8,5 @@ const marketSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
-
 const Market = mongoose.model('Market', marketSchema);
 export default Market;

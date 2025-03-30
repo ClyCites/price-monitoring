@@ -24,13 +24,21 @@ export const addProduct = async (req, res) => {
 };
 
 export const getProducts = async (req, res) => {
-    try {
-        const products = await Product.find().sort({ name: 1 });
-        res.status(200).json(products);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  try {
+    // Fetch all products and populate their associated prices, including virtual fields
+    const products = await Product.find()
+      .sort({ name: 1 })
+      .populate('prices') // Populate the prices field from the Price model
+      .lean(); // Converts Mongoose documents to plain JavaScript objects so that virtuals are included
+
+    // Send the response back with the products and their associated prices
+    res.status(200).json(products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ message: error.message });
+  }
 };
+
 
 export const getProduct = async (req, res) => {
     try {

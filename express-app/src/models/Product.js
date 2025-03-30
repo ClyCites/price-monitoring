@@ -10,5 +10,12 @@ const productSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+productSchema.virtual('prices', {
+  ref: 'Price',
+  localField: '_id',
+  foreignField: 'product',
+  justOne: false,
+});
+
 const Product = mongoose.model('Product', productSchema);
 export default Product;
