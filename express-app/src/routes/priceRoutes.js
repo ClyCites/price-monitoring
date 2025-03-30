@@ -19,6 +19,7 @@ import {
   compareMarketPrices,
   getPriceVolatility,
   getTrendingProducts,
+  getProductTrend,
 } from '../controllers/priceController.js';
 
 const router = express.Router();
@@ -47,6 +48,8 @@ router.get('/average', getAveragePricePerMarket); // Get average price per marke
 router.get('/compare', compareMarketPrices); // Compare market prices
 router.get('/volatility', getPriceVolatility); // Get price volatility
 router.get('/trends/popular', getTrendingProducts);
+router.get('/trends/product', getProductTrend);
+
 
 
 router.get('/:id', getPriceById)
