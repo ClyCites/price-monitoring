@@ -189,25 +189,25 @@ export const getProductTrend = async (req, res) => {
       return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    // Fetch historical prices for the product
-    const historicalPrices = await Price.find({
+    // Fetch price records directly from the Price schema within the given time range
+    const prices = await Price.find({
       product,
       date: { $gte: new Date(Date.now() - days * 24 * 60 * 60 * 1000) }
-    }).sort({ date: 1 });
+    }).sort({ date: 1 }); // Sorting to get the first and latest prices correctly
 
-    if (historicalPrices.length < 2) {
-      return res.status(200).json({ message: "Not enough data for trend analysis", historicalPrices });
+    if (prices.length < 2) {
+      return res.status(200).json({ message: "Not enough data for trend analysis", prices });
     }
 
-    // Get first and latest prices
-    const firstPrice = historicalPrices[0].price;
-    const latestPrice = historicalPrices[historicalPrices.length - 1].price;
+    // Extract first and last price for trend calculation
+    const firstPrice = prices[0].price;
+    const latestPrice = prices[prices.length - 1].price;
     const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
     const trendDirection = trendPercentage > 0 ? "increasing" : trendPercentage < 0 ? "decreasing" : "stable";
 
-    // Get highest and lowest prices within the period
-    const highestPrice = Math.max(...historicalPrices.map((p) => p.price));
-    const lowestPrice = Math.min(...historicalPrices.map((p) => p.price));
+    // Find highest and lowest prices in the time range
+    const highestPrice = Math.max(...prices.map((p) => p.price));
+    const lowestPrice = Math.min(...prices.map((p) => p.price));
 
     res.status(200).json({
       product,
@@ -215,13 +215,14 @@ export const getProductTrend = async (req, res) => {
       trendDirection,
       highestPrice,
       lowestPrice,
-      historicalPrices
+      prices
     });
   } catch (error) {
     console.error("Error fetching product trend:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
+
 
 
 export const getTrendingProducts = async (req, res) => {
