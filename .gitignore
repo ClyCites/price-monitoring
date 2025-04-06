@@ -121,4 +121,5 @@ cypress/screenshots
 
 # vscode files
 .vscode/*
-
+venv
+venv/
