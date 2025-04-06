@@ -49,7 +49,7 @@ export default function RecentPricesTable({ prices, isLoading }: RecentPricesTab
         <TableBody>
           {recentPrices.map((price: any) => (
             <TableRow key={price._id}>
-              <TableCell Name="font-medium">{price.product.name}</TableCell>
+              <TableCell className="font-medium">{price.product.name}</TableCell>
               <TableCell>{price.market.name}</TableCell>
               <TableCell>{price.price.toLocaleString()}</TableCell>
               <TableCell>
