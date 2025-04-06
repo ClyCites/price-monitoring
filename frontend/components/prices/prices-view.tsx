@@ -29,8 +29,8 @@ export default function PricesView() {
   const deletePriceMutation = useDeletePrice()
 
   // Get unique products and markets for filters
-  const products = Array.from(new Set(prices.map((price: any) => price.product)))
-  const markets = Array.from(new Set(prices.map((price: any) => price.market)))
+  const products: string[] = Array.from(new Set(prices.map((price: any) => price.product)))
+  const markets: string[] = Array.from(new Set(prices.map((price: any) => price.market)))
 
   const handleDeletePrice = async (id: string) => {
     // Show a confirmation toast

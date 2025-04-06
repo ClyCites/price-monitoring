@@ -60,9 +60,10 @@ export default function MarketComparisonView() {
         market,
         price,
         date: new Date().toISOString(),
-        productType: "solid",
+        productType: "solid" as "solid",
         quantity: 1,
-        unit: "kg",
+        unit: "kg" as "kg",
+        currency: "UGX", // Add default currency
       }
     })
   }
