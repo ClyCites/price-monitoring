@@ -1,76 +1,85 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useMarketComparison } from "@/lib/hooks/use-prices"
 import MarketComparisonChart from "./market-comparison-chart"
 import MarketComparisonTable from "./market-comparison-table"
-
-// Sample products
-const products = ["Rice", "Maize", "Beans", "Coffee", "Tea"]
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import axios from "axios"
 
 export default function MarketComparisonView() {
-  const [selectedProduct, setSelectedProduct] = useState("rice")
+  const [products, setProducts] = useState([])
+  const [selectedProductId, setSelectedProductId] = useState("")
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true)
+  const [productError, setProductError] = useState(null)
 
-  const { data: marketPrices = [], isLoading } = useMarketComparison(selectedProduct)
+  // Fetch products from API
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setIsLoadingProducts(true)
+      setProductError(null)
 
-  const generateSampleMarketData = (product: string) => {
-    const markets = ["Kampala Central", "Owino Market", "Nakasero", "Kalerwe", "Kikuubo", "Nateete", "Kireka", "Ntinda"]
+      try {
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+        const response = await axios.get(`${API_URL}/products`)
 
-    const basePrice =
-      product === "rice"
-        ? 2500
-        : product === "maize"
-          ? 1800
-          : product === "beans"
-            ? 3200
-            : product === "coffee"
-              ? 5500
-              : product === "tea"
-                ? 4000
-                : 2000
+        if (response.data && Array.isArray(response.data)) {
+          setProducts(response.data)
+          // Set the first product as default if available
+          if (response.data.length > 0) {
+            setSelectedProductId(response.data[0]._id)
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching products:", error)
+        setProductError(error.message || "Failed to load products")
+      } finally {
+        setIsLoadingProducts(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
+
+  // Use the hook for React Query approach with the selected product ID
+  const { data: marketPrices = [], isLoading: isDataLoading, error: dataError } = useMarketComparison(selectedProductId)
+
+  // Generate sample data as a fallback
+  const generateSampleMarketData = () => {
+    const markets = ["Nakasero Market", "Mbale Central Market", "Owino Market", "Gulu Main Market", "Mbarara Central Market", "Bugema Market"]
+    const basePrice = 2500
 
     return markets.map((market) => {
-      // Add variation based on market
-      const marketFactor =
-        market === "Kampala Central"
-          ? 1.1
-          : market === "Owino Market"
-            ? 1.0
-            : market === "Nakasero"
-              ? 1.2
-              : market === "Kalerwe"
-                ? 0.95
-                : market === "Kikuubo"
-                  ? 1.05
-                  : market === "Nateete"
-                    ? 0.9
-                    : market === "Kireka"
-                      ? 0.92
-                      : market === "Ntinda"
-                        ? 1.15
-                        : 1.0
-
+      const marketFactor = Math.random() * 0.3 + 0.85 // Random factor between 0.85 and 1.15
       const price = Math.round(basePrice * marketFactor)
 
       return {
-        _id: Math.random().toString(36).substring(2, 9), // Simulate MongoDB ID
-        product: product.toLowerCase(),
-        market,
+        _id: Math.random().toString(36).substring(2, 9),
+        product: selectedProductId,
+        market: { name: market },
         price,
         date: new Date().toISOString(),
-        productType: "solid" as "solid",
+        productType: "solid" as const,
         quantity: 1,
-        unit: "kg" as "kg",
-        currency: "UGX", // Add default currency
+        unit: "kg" as const,
+        currency: "UGX",
       }
     })
   }
 
-  // Use sample data for demo
-  const sampleMarketData = generateSampleMarketData(selectedProduct)
-  const displayData = marketPrices.length > 0 ? marketPrices : sampleMarketData
+  // Use sample data if API fails
+  const displayData = marketPrices.length > 0 ? marketPrices : generateSampleMarketData()
+  const isLoading = isLoadingProducts || isDataLoading
+  const error = productError || dataError
+
+  // Get the selected product name for display
+  const getSelectedProductName = () => {
+    const product = products.find((p) => p._id === selectedProductId)
+    return product ? product.name : "Selected Product"
+  }
 
   return (
     <div className="container mx-auto space-y-6">
@@ -83,28 +92,34 @@ export default function MarketComparisonView() {
         </CardHeader>
         <CardContent>
           <div className="mb-6">
-            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+            <Select value={selectedProductId} onValueChange={setSelectedProductId} disabled={isLoadingProducts}>
               <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Select product" />
+                <SelectValue placeholder={isLoadingProducts ? "Loading products..." : "Select product"} />
               </SelectTrigger>
               <SelectContent>
                 {products.map((product) => (
-                  <SelectItem key={product} value={product.toLowerCase()}>
-                    {product}
+                  <SelectItem key={product._id} value={product._id}>
+                    {product.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="space-y-6">
-            <MarketComparisonChart data={displayData} isLoading={isLoading} productName={selectedProduct} />
-
-            <MarketComparisonTable data={displayData} isLoading={isLoading} />
-          </div>
+          {error ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>Failed to load market comparison data. Please try again later.</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-6">
+              <MarketComparisonChart data={displayData} isLoading={isLoading} productName={getSelectedProductName()} />
+              <MarketComparisonTable data={displayData} isLoading={isLoading} />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   )
 }
-

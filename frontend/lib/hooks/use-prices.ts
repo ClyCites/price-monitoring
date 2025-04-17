@@ -79,6 +79,8 @@ export function useMarketComparison(product: string) {
     queryKey: priceKeys.compareMarkets(product),
     queryFn: () => compareMarketPrices(product),
     enabled: !!product,
+    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   })
 }
 
@@ -192,4 +194,3 @@ export function useBulkImportPrices() {
     },
   })
 }
-
