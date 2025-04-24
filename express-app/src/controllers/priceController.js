@@ -131,7 +131,6 @@ export const getPriceTrends = async (req, res) => {
       return res.status(200).json({ message: 'Not enough data for trend analysis', historicalPrices });
     }
 
-    // Extract price trend
     const firstPrice = historicalPrices[0].price;
     const latestPrice = historicalPrices[historicalPrices.length - 1].price;
     const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
