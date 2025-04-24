@@ -252,7 +252,6 @@ export const getTrendingProducts = async (req, res) => {
         dateRange = Date.now() - (days * 24 * 60 * 60 * 1000);
     }
 
-    // Aggregate price trends for products
     const trendingProducts = await Price.aggregate([
       {
         $match: {
@@ -284,7 +283,6 @@ export const getTrendingProducts = async (req, res) => {
       { $limit: 10 }
     ]);
 
-    // Fetch product details and include more info such as category, description, image
     const productIds = trendingProducts.map((p) => p.productId);
     const products = await Product.find({ _id: { $in: productIds } }).select("name category description image");
 
