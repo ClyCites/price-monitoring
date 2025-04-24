@@ -419,9 +419,6 @@ export const setUserPriceAlerts = async (req, res) => {
   }
 };
 
-// =========================
-// 12️⃣ Check Price Alerts
-
 export const checkPriceAlerts = async (req, res) => {
   try {
     const { userId } = req.query;
