@@ -286,7 +286,6 @@ export const getTrendingProducts = async (req, res) => {
     const productIds = trendingProducts.map((p) => p.productId);
     const products = await Product.find({ _id: { $in: productIds } }).select("name category description image");
 
-    // Merge product details
     const response = trendingProducts.map((trend) => {
       const product = products.find((p) => p._id.toString() === trend.productId.toString());
       return {
@@ -306,10 +305,6 @@ export const getTrendingProducts = async (req, res) => {
   }
 };
 
-
-// =========================
-// 7️⃣ Predict Future Prices (AI Model Integration)
-// =========================
 export const predictPrice = async (req, res) => {
   try {
     const { product, market } = req.body;
