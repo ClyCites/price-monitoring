@@ -313,7 +313,6 @@ export const predictPrice = async (req, res) => {
       return res.status(400).json({ message: 'Product and market are required' });
     }
 
-    // Placeholder: Replace with AI model prediction logic
     const predictedPrice = Math.random() * 1000; 
     const predictionDate = new Date();
 
@@ -324,9 +323,6 @@ export const predictPrice = async (req, res) => {
   }
 };
 
-// =========================
-// 8️⃣ Bulk Import Prices
-// =========================
 export const bulkImportPrices = async (req, res) => {
   try {
     const { prices } = req.body;
