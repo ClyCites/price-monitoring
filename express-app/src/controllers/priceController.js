@@ -234,9 +234,8 @@ export const getProductTrend = async (req, res) => {
 
 export const getTrendingProducts = async (req, res) => {
   try {
-    // Parse the time range and calculate the date range
     const days = req.query.days ? parseInt(req.query.days) : 30;
-    const rangeType = req.query.range || "days"; // 'days', 'weeks', 'months', 'years'
+    const rangeType = req.query.range || "days";
     let dateRange;
 
     switch (rangeType) {
