@@ -121,7 +121,6 @@ export const getPriceTrends = async (req, res) => {
       return res.status(400).json({ message: 'Invalid product or market ID' });
     }
 
-    // Fetch historical prices within the specified time frame
     const historicalPrices = await Price.find({
       product,
       market,
