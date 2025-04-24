@@ -368,9 +368,6 @@ export const getHistoricalPrices = async (req, res) => {
   }
 };
 
-// =========================
-// 🔟 Get Top Markets for a Product
-// =========================
 export const getTopMarketsForProduct = async (req, res) => {
   try {
     const { product } = req.query;
@@ -394,9 +391,6 @@ export const getTopMarketsForProduct = async (req, res) => {
   }
 };
 
-// =========================
-// 11️⃣ Set User Price Alerts
-// =========================
 export const setUserPriceAlerts = async (req, res) => {
   try {
     const { userId, product, market, priceThreshold } = req.body;
