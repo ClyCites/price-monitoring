@@ -23,7 +23,7 @@ export default function ApiTester() {
 
     try {
       const url = `${API_URL}${endpoint}`
-      const queryParams = {}
+      const queryParams: Record<string, string> = {}
 
       // Parse params string into object
       if (params) {
@@ -40,10 +40,14 @@ export default function ApiTester() {
         response = await axios.post(url, queryParams)
       }
 
-      setResult(JSON.stringify(response.data, null, 2))
+      setResult(response ? JSON.stringify(response.data, null, 2) : "No response received")
     } catch (err) {
       console.error("API test error:", err)
-      setError(err.message || "An error occurred")
+      if (err instanceof Error) {
+        setError(err.message || "An error occurred")
+      } else {
+        setError("An unknown error occurred")
+      }
     } finally {
       setLoading(false)
     }
