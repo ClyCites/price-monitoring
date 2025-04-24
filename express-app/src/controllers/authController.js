@@ -8,7 +8,6 @@ const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '30d' });
 };
 
-// Register User
 export const registerUser = async (req, res) => {
   const { name, email, profilePicture, password, role } = req.body;
 
@@ -97,7 +96,6 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// Reset Password
 export const resetPassword = async (req, res) => {
   const { token } = req.params;
   const { newPassword } = req.body;
@@ -117,7 +115,6 @@ export const resetPassword = async (req, res) => {
     user.resetPasswordExpires = undefined;
     await user.save();
 
-    // Send Password Reset Confirmation Email
     await sendEmail(user.email, 'Your Password Has Been Changed', 'password-changed', { name: user.name });
 
     res.json({ message: 'Password reset successful' });

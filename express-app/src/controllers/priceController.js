@@ -4,26 +4,20 @@ import Product from '../models/Product.js';
 import Market from '../models/Market.js';
 import PriceAlert from '../models/PriceAlert.js';
 
-// =========================
-// 1️⃣ Add a New Price Entry (Manual Entry)
-// =========================
 export const addPrice = async (req, res) => {
   try {
     const { product, market, price, currency, date, productType, quantity, unit } = req.body;
 
-    // Validate required fields
     if (!product || !market || !price || !date || !productType || !quantity || !unit) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Validate product and market existence
     const existingProduct = await Product.findById(product);
     if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
 
     const existingMarket = await Market.findById(market);
     if (!existingMarket) return res.status(404).json({ message: 'Market not found' });
 
-    // Create new price entry
     const newPrice = new Price({
       product,
       market,
@@ -34,7 +28,7 @@ export const addPrice = async (req, res) => {
       quantity,
       unit,
       lastUpdated: new Date(),
-      historicalPrices: [] // Initialize historical prices if needed
+      historicalPrices: []
     });
 
     await newPrice.save();
@@ -45,9 +39,6 @@ export const addPrice = async (req, res) => {
   }
 };
 
-// =========================
-// 2️⃣ Get Prices (Filter by Product & Market)
-// =========================
 export const getPrices = async (req, res) => {
   try {
     const { product, market } = req.query;
@@ -66,9 +57,6 @@ export const getPrices = async (req, res) => {
   }
 };
 
-// =========================
-// 3️⃣ Get Price by ID
-// =========================
 export const getPriceById = async (req, res) => {
   try {
     const price = await Price.findById(req.params.id)
@@ -83,9 +71,6 @@ export const getPriceById = async (req, res) => {
   }
 };
 
-// =========================
-// 4️⃣ Update Price Entry
-// =========================
 export const updatePrice = async (req, res) => {
   try {
     const { product, market } = req.body;
@@ -93,7 +78,6 @@ export const updatePrice = async (req, res) => {
     const price = await Price.findById(req.params.id);
     if (!price) return res.status(404).json({ message: 'Price not found' });
 
-    // Validate product and market existence if updated
     if (product) {
       const existingProduct = await Product.findById(product);
       if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
@@ -103,7 +87,6 @@ export const updatePrice = async (req, res) => {
       if (!existingMarket) return res.status(404).json({ message: 'Market not found' });
     }
 
-    // Update price entry
     Object.assign(price, req.body, { lastUpdated: new Date() });
     await price.save();
     res.status(200).json({ message: 'Price updated successfully', price });
@@ -113,9 +96,6 @@ export const updatePrice = async (req, res) => {
   }
 };
 
-// =========================
-// 5️⃣ Delete a Price Entry
-// =========================
 export const deletePrice = async (req, res) => {
   try {
     const price = await Price.findById(req.params.id);
@@ -128,9 +108,6 @@ export const deletePrice = async (req, res) => {
   }
 };
 
-// =========================
-// 6️⃣ Get Price Trends & Moving Averages
-// =========================
 export const getPriceTrends = async (req, res) => {
   try {
     const { product, market, days } = req.query;
@@ -144,7 +121,6 @@ export const getPriceTrends = async (req, res) => {
       return res.status(400).json({ message: 'Invalid product or market ID' });
     }
 
-    // Fetch historical prices within the specified time frame
     const historicalPrices = await Price.find({
       product,
       market,
@@ -155,12 +131,10 @@ export const getPriceTrends = async (req, res) => {
       return res.status(200).json({ message: 'Not enough data for trend analysis', historicalPrices });
     }
 
-    // Extract price trend
     const firstPrice = historicalPrices[0].price;
     const latestPrice = historicalPrices[historicalPrices.length - 1].price;
     const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
 
-    // Determine price movement direction
     const trendDirection = trendPercentage > 0 ? 'increasing' : trendPercentage < 0 ? 'decreasing' : 'stable';
 
     res.status(200).json({
@@ -189,10 +163,8 @@ export const getProductTrend = async (req, res) => {
       return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    // Calculate the date range for the query
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    // Use aggregation to calculate trend data
     const result = await Price.aggregate([
       {
         $match: {
@@ -262,9 +234,8 @@ export const getProductTrend = async (req, res) => {
 
 export const getTrendingProducts = async (req, res) => {
   try {
-    // Parse the time range and calculate the date range
     const days = req.query.days ? parseInt(req.query.days) : 30;
-    const rangeType = req.query.range || "days"; // 'days', 'weeks', 'months', 'years'
+    const rangeType = req.query.range || "days";
     let dateRange;
 
     switch (rangeType) {
@@ -281,7 +252,6 @@ export const getTrendingProducts = async (req, res) => {
         dateRange = Date.now() - (days * 24 * 60 * 60 * 1000);
     }
 
-    // Aggregate price trends for products
     const trendingProducts = await Price.aggregate([
       {
         $match: {
@@ -313,11 +283,9 @@ export const getTrendingProducts = async (req, res) => {
       { $limit: 10 }
     ]);
 
-    // Fetch product details and include more info such as category, description, image
     const productIds = trendingProducts.map((p) => p.productId);
     const products = await Product.find({ _id: { $in: productIds } }).select("name category description image");
 
-    // Merge product details
     const response = trendingProducts.map((trend) => {
       const product = products.find((p) => p._id.toString() === trend.productId.toString());
       return {
@@ -337,10 +305,6 @@ export const getTrendingProducts = async (req, res) => {
   }
 };
 
-
-// =========================
-// 7️⃣ Predict Future Prices (AI Model Integration)
-// =========================
 export const predictPrice = async (req, res) => {
   try {
     const { product, market } = req.body;
@@ -349,7 +313,6 @@ export const predictPrice = async (req, res) => {
       return res.status(400).json({ message: 'Product and market are required' });
     }
 
-    // Placeholder: Replace with AI model prediction logic
     const predictedPrice = Math.random() * 1000; 
     const predictionDate = new Date();
 
@@ -360,9 +323,6 @@ export const predictPrice = async (req, res) => {
   }
 };
 
-// =========================
-// 8️⃣ Bulk Import Prices
-// =========================
 export const bulkImportPrices = async (req, res) => {
   try {
     const { prices } = req.body;
@@ -370,7 +330,6 @@ export const bulkImportPrices = async (req, res) => {
       return res.status(400).json({ message: 'Invalid price data' });
     }
 
-    // Validate each price entry
     for (const priceData of prices) {
       const { product, market, price, date, productType, quantity, unit } = priceData;
 
@@ -393,9 +352,6 @@ export const bulkImportPrices = async (req, res) => {
   }
 };
 
-// =========================
-// 9️⃣ Get Historical Prices
-// =========================
 export const getHistoricalPrices = async (req, res) => {
   try {
     const { product, market, limit = 30 } = req.query;
@@ -412,9 +368,6 @@ export const getHistoricalPrices = async (req, res) => {
   }
 };
 
-// =========================
-// 🔟 Get Top Markets for a Product
-// =========================
 export const getTopMarketsForProduct = async (req, res) => {
   try {
     const { product } = req.query;
@@ -438,9 +391,6 @@ export const getTopMarketsForProduct = async (req, res) => {
   }
 };
 
-// =========================
-// 11️⃣ Set User Price Alerts
-// =========================
 export const setUserPriceAlerts = async (req, res) => {
   try {
     const { userId, product, market, priceThreshold } = req.body;
@@ -469,25 +419,19 @@ export const setUserPriceAlerts = async (req, res) => {
   }
 };
 
-// =========================
-// 12️⃣ Check Price Alerts
-
 export const checkPriceAlerts = async (req, res) => {
   try {
     const { userId } = req.query;
 
-    // Step 1: Validate input
     if (!userId) {
       return res.status(400).json({ message: 'UserId is required' });
     }
 
-    // Step 2: Fetch all untriggered price alerts for the given user
     const alerts = await PriceAlert.find({ userId, alertTriggered: false });
     if (!alerts.length) {
       return res.status(200).json({ message: 'No active price alerts for this user' });
     }
 
-    // Step 3: For each alert, check if the current price has reached the threshold
     const triggeredAlerts = [];
     for (const alert of alerts) {
       const { product, market, priceThreshold } = alert;
