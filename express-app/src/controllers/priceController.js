@@ -135,7 +135,6 @@ export const getPriceTrends = async (req, res) => {
     const latestPrice = historicalPrices[historicalPrices.length - 1].price;
     const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
 
-    // Determine price movement direction
     const trendDirection = trendPercentage > 0 ? 'increasing' : trendPercentage < 0 ? 'decreasing' : 'stable';
 
     res.status(200).json({
@@ -164,10 +163,8 @@ export const getProductTrend = async (req, res) => {
       return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    // Calculate the date range for the query
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-    // Use aggregation to calculate trend data
     const result = await Price.aggregate([
       {
         $match: {
