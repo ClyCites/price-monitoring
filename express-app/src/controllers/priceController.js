@@ -78,7 +78,6 @@ export const updatePrice = async (req, res) => {
     const price = await Price.findById(req.params.id);
     if (!price) return res.status(404).json({ message: 'Price not found' });
 
-    // Validate product and market existence if updated
     if (product) {
       const existingProduct = await Product.findById(product);
       if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
@@ -88,7 +87,6 @@ export const updatePrice = async (req, res) => {
       if (!existingMarket) return res.status(404).json({ message: 'Market not found' });
     }
 
-    // Update price entry
     Object.assign(price, req.body, { lastUpdated: new Date() });
     await price.save();
     res.status(200).json({ message: 'Price updated successfully', price });
@@ -98,9 +96,6 @@ export const updatePrice = async (req, res) => {
   }
 };
 
-// =========================
-// 5️⃣ Delete a Price Entry
-// =========================
 export const deletePrice = async (req, res) => {
   try {
     const price = await Price.findById(req.params.id);
