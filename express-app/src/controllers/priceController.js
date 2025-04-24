@@ -13,7 +13,6 @@ export const addPrice = async (req, res) => {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Validate product and market existence
     const existingProduct = await Product.findById(product);
     if (!existingProduct) return res.status(404).json({ message: 'Product not found' });
 
