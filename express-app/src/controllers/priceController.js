@@ -28,7 +28,7 @@ export const addPrice = async (req, res) => {
       quantity,
       unit,
       lastUpdated: new Date(),
-      historicalPrices: [] // Initialize historical prices if needed
+      historicalPrices: []
     });
 
     await newPrice.save();
@@ -39,9 +39,6 @@ export const addPrice = async (req, res) => {
   }
 };
 
-// =========================
-// 2️⃣ Get Prices (Filter by Product & Market)
-// =========================
 export const getPrices = async (req, res) => {
   try {
     const { product, market } = req.query;
