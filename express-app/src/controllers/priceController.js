@@ -330,7 +330,6 @@ export const bulkImportPrices = async (req, res) => {
       return res.status(400).json({ message: 'Invalid price data' });
     }
 
-    // Validate each price entry
     for (const priceData of prices) {
       const { product, market, price, date, productType, quantity, unit } = priceData;
 
@@ -353,9 +352,6 @@ export const bulkImportPrices = async (req, res) => {
   }
 };
 
-// =========================
-// 9️⃣ Get Historical Prices
-// =========================
 export const getHistoricalPrices = async (req, res) => {
   try {
     const { product, market, limit = 30 } = req.query;
