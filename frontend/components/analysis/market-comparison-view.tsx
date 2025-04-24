@@ -11,10 +11,10 @@ import { AlertCircle } from "lucide-react"
 import axios from "axios"
 
 export default function MarketComparisonView() {
-  const [products, setProducts] = useState([])
+  const [products, setProducts] = useState<{ _id: string; name: string }[]>([])
   const [selectedProductId, setSelectedProductId] = useState("")
   const [isLoadingProducts, setIsLoadingProducts] = useState(true)
-  const [productError, setProductError] = useState(null)
+  const [productError, setProductError] = useState<string | null>(null)
 
   // Fetch products from API
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function MarketComparisonView() {
         }
       } catch (error) {
         console.error("Error fetching products:", error)
-        setProductError(error.message || "Failed to load products")
+        setProductError(error instanceof Error ? error.message : "Failed to load products")
       } finally {
         setIsLoadingProducts(false)
       }
@@ -59,7 +59,7 @@ export default function MarketComparisonView() {
       return {
         _id: Math.random().toString(36).substring(2, 9),
         product: selectedProductId,
-        market: { name: market },
+        market: { _id: Math.random().toString(36).substring(2, 9), name: market },
         price,
         date: new Date().toISOString(),
         productType: "solid" as const,
