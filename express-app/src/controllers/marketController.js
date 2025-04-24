@@ -1,9 +1,6 @@
 import Market from '../models/Market.js';
 import Price from '../models/Price.js';
 
-// =========================
-// 1️⃣ Create a Market
-// =========================
 export const createMarket = async (req, res) => {
   try {
     const { name, location, region, country } = req.body;
@@ -26,9 +23,6 @@ export const createMarket = async (req, res) => {
   }
 };
 
-// =========================
-// 2️⃣ Get All Markets
-// =========================
 export const getMarkets = async (req, res) => {
   try {
     const markets = await Market.find().sort({ name: 1 });
@@ -38,9 +32,6 @@ export const getMarkets = async (req, res) => {
   }
 };
 
-// =========================
-// 3️⃣ Get Market by ID
-// =========================
 export const getMarketById = async (req, res) => {
   try {
     const market = await Market.findById(req.params.id);
@@ -52,9 +43,6 @@ export const getMarketById = async (req, res) => {
   }
 };
 
-// =========================
-// 4️⃣ Update Market Details
-// =========================
 export const updateMarket = async (req, res) => {
   try {
     const market = await Market.findById(req.params.id);

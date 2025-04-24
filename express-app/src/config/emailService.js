@@ -11,7 +11,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Load & compile email templates
 const loadTemplate = async (templateName, replacements) => {
   const filePath = path.join(process.cwd(), 'emails', `${templateName}.html`);
   const source = await fs.readFile(filePath, 'utf-8');
@@ -19,7 +18,6 @@ const loadTemplate = async (templateName, replacements) => {
   return template(replacements);
 };
 
-// Send email function
 export const sendEmail = async (to, subject, templateName, replacements) => {
   try {
     const html = await loadTemplate(templateName, replacements);
