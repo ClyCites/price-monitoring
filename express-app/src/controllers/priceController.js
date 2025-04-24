@@ -8,7 +8,6 @@ export const addPrice = async (req, res) => {
   try {
     const { product, market, price, currency, date, productType, quantity, unit } = req.body;
 
-    // Validate required fields
     if (!product || !market || !price || !date || !productType || !quantity || !unit) {
       return res.status(400).json({ message: 'All fields are required' });
     }
