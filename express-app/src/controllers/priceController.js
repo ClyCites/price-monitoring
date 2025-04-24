@@ -57,9 +57,6 @@ export const getPrices = async (req, res) => {
   }
 };
 
-// =========================
-// 3️⃣ Get Price by ID
-// =========================
 export const getPriceById = async (req, res) => {
   try {
     const price = await Price.findById(req.params.id)
