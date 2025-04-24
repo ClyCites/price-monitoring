@@ -108,9 +108,6 @@ export const deletePrice = async (req, res) => {
   }
 };
 
-// =========================
-// 6️⃣ Get Price Trends & Moving Averages
-// =========================
 export const getPriceTrends = async (req, res) => {
   try {
     const { product, market, days } = req.query;
