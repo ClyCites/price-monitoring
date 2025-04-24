@@ -71,9 +71,6 @@ export const getPriceById = async (req, res) => {
   }
 };
 
-// =========================
-// 4️⃣ Update Price Entry
-// =========================
 export const updatePrice = async (req, res) => {
   try {
     const { product, market } = req.body;
