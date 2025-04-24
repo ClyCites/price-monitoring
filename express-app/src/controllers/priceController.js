@@ -4,9 +4,6 @@ import Product from '../models/Product.js';
 import Market from '../models/Market.js';
 import PriceAlert from '../models/PriceAlert.js';
 
-// =========================
-// 1️⃣ Add a New Price Entry (Manual Entry)
-// =========================
 export const addPrice = async (req, res) => {
   try {
     const { product, market, price, currency, date, productType, quantity, unit } = req.body;
