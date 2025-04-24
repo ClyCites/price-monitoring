@@ -18,7 +18,6 @@ export const addPrice = async (req, res) => {
     const existingMarket = await Market.findById(market);
     if (!existingMarket) return res.status(404).json({ message: 'Market not found' });
 
-    // Create new price entry
     const newPrice = new Price({
       product,
       market,
