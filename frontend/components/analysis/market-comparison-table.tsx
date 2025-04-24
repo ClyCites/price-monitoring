@@ -31,7 +31,7 @@ export default function MarketComparisonTable({ data, isLoading }: MarketCompari
   }
 
   // Calculate average price across all markets
-  const avgPrice = data.reduce((sum, item) => sum + item.price, 0) / data.length
+  const avgPrice = data.length > 0 ? data.reduce((sum, item) => sum + item.price, 0) / data.length : 0
 
   // Sort data by price (lowest to highest)
   const sortedData = [...data].sort((a, b) => a.price - b.price)
@@ -51,10 +51,12 @@ export default function MarketComparisonTable({ data, isLoading }: MarketCompari
           {sortedData.map((item, index) => {
             const priceDiff = item.price - avgPrice
             const percentDiff = (priceDiff / avgPrice) * 100
+            // Handle both string market and object market with name property
+            const marketName = typeof item.market === "object" ? item.market?.name : item.market
 
             return (
               <TableRow key={item._id || index}>
-                <TableCell className="font-medium">{item.market}</TableCell>
+                <TableCell className="font-medium">{marketName}</TableCell>
                 <TableCell>{item.price.toLocaleString()}</TableCell>
                 <TableCell>
                   <div className="flex items-center">
@@ -86,4 +88,3 @@ export default function MarketComparisonTable({ data, isLoading }: MarketCompari
     </div>
   )
 }
-

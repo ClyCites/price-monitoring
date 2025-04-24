@@ -4,8 +4,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
 export interface Price {
   _id?: string
-  product: string
-  market: string
+  product: string | { _id: string; name: string; category?: string }
+  market: string | { _id: string; name: string; location?: string; region?: string }
   price: number
   currency: string
   date: string | Date
@@ -85,10 +85,17 @@ export const getHistoricalPrices = async (product: string, market: string, limit
 
 // Compare prices across different markets for a product
 export const compareMarketPrices = async (product: string) => {
-  const { data } = await axios.get(`${API_URL}/prices/compare`, {
-    params: { product },
-  })
-  return data as Price[]
+  try {
+    // The API expects a product ID, not a product name
+    const { data } = await axios.get(`${API_URL}/prices/compare`, {
+      params: { product },
+    })
+    console.log("Market comparison API response:", data)
+    return data as Price[]
+  } catch (error) {
+    console.error("Error fetching market comparison data:", error)
+    throw error
+  }
 }
 
 // Get top markets for a product (best prices)
@@ -117,4 +124,3 @@ export const bulkImportPrices = async (prices: Price[]) => {
   const { data } = await axios.post(`${API_URL}/prices/bulk-import`, { prices })
   return data
 }
-

@@ -23,9 +23,9 @@ export default function MarketComparisonChart({ data, isLoading, productName }: 
     )
   }
 
-  // Format data for the chart
+  // Format data for the chart, handling both string market and object market with name property
   const chartData = data.map((item) => ({
-    market: item.market,
+    market: typeof item.market === "object" ? item.market?.name : item.market,
     price: item.price,
   }))
 
@@ -57,15 +57,9 @@ export default function MarketComparisonChart({ data, isLoading, productName }: 
             }}
           />
           <Legend />
-          <Bar
-            dataKey="price"
-            name={`${productName.charAt(0).toUpperCase() + productName.slice(1)} Price (UGX)`}
-            fill="#16a34a"
-            radius={[4, 4, 0, 0]}
-          />
+          <Bar dataKey="price" name={`${productName} Price (UGX)`} fill="#16a34a" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
   )
 }
-
