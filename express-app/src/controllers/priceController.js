@@ -432,7 +432,6 @@ export const checkPriceAlerts = async (req, res) => {
       return res.status(200).json({ message: 'No active price alerts for this user' });
     }
 
-    // Step 3: For each alert, check if the current price has reached the threshold
     const triggeredAlerts = [];
     for (const alert of alerts) {
       const { product, market, priceThreshold } = alert;
