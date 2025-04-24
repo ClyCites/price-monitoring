@@ -423,12 +423,10 @@ export const checkPriceAlerts = async (req, res) => {
   try {
     const { userId } = req.query;
 
-    // Step 1: Validate input
     if (!userId) {
       return res.status(400).json({ message: 'UserId is required' });
     }
 
-    // Step 2: Fetch all untriggered price alerts for the given user
     const alerts = await PriceAlert.find({ userId, alertTriggered: false });
     if (!alerts.length) {
       return res.status(200).json({ message: 'No active price alerts for this user' });
