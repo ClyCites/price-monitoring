@@ -42,7 +42,7 @@ export default function ApiPlayground() {
   >([])
 
   // API base URL
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000"
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL_DEV || "http://127.0.0.1:5000"
 
   // Handle forecast form submission
   const handleForecastSubmit = async (e: React.FormEvent) => {
@@ -56,7 +56,7 @@ export default function ApiPlayground() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/forecast`, {
+      const response = await fetch(`${API_BASE_URL}/v1/forecast`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
@@ -105,7 +105,7 @@ export default function ApiPlayground() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/v1/market-trends`, {
+      const response = await fetch(`${API_BASE_URL}/v1/market-trends`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestData),
