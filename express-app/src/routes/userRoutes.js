@@ -16,7 +16,7 @@ const router = express.Router()
 // Admin only routes
 router.get("/",  getUsers)
 router.get("/stats",  getUserStats)
-router.post("/assign-role", protect, adminOnly, assignRole)
+router.post("/assign-role", assignRole)
 router.post("/bulk-assign-roles", protect, adminOnly, bulkAssignRoles)
 
 // Routes for specific users
