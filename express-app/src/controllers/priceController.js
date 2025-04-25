@@ -188,81 +188,45 @@ export const deletePrice = async (req, res) => {
 // =========================
 export const getPriceTrends = async (req, res) => {
   try {
-    const { product, market, days = 30 } = req.query
+    const { product, market, days } = req.query;
+    const pastDays = days ? parseInt(days) : 30;
 
-    if (!product) {
-      return res.status(400).json({ message: "Product is required" })
+    if (!product || !market) {
+      return res.status(400).json({ message: 'Product and market are required' });
     }
 
-    // Calculate date range
-    const endDate = new Date()
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - Number(days))
+    if (!mongoose.Types.ObjectId.isValid(product) || !mongoose.Types.ObjectId.isValid(market)) {
+      return res.status(400).json({ message: 'Invalid product or market ID' });
+    }
 
-    // Build the query object
-    const query = {
+    const historicalPrices = await Price.find({
       product,
-      date: { $gte: startDate, $lte: endDate },
+      market,
+      date: { $gte: new Date(Date.now() - pastDays * 24 * 60 * 60 * 1000) }
+    }).sort({ date: 1 });
+
+    if (historicalPrices.length < 2) {
+      return res.status(200).json({ message: 'Not enough data for trend analysis', historicalPrices });
     }
 
-    // Only add market to query if it's not "all"
-    if (market && market !== "all") {
-      query.market = market
-    }
+    const firstPrice = historicalPrices[0].price;
+    const latestPrice = historicalPrices[historicalPrices.length - 1].price;
+    const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100;
 
-    // Fetch historical prices within the specified time frame
-    const prices = await Price.find(query).sort({ date: 1 }).populate("market", "name location region")
-
-    if (prices.length < 2) {
-      return res.status(200).json({ message: "Not enough data for trend analysis", prices })
-    }
-
-    // Calculate moving averages
-    const movingAverages7 = calculateMovingAverage(prices, 7)
-    const movingAverages14 = calculateMovingAverage(prices, 14)
-
-    // Detect price trend
-    const trend = detectPriceTrend(prices, Number(days))
-
-    // Calculate volatility
-    const volatility = calculateVolatility(prices, Number(days))
-
-    // Identify anomalies
-    const anomalies = identifyAnomalies(prices)
-
-    // Get product details
-    const productDetails = await Product.findById(product)
+    const trendDirection = trendPercentage > 0 ? 'increasing' : trendPercentage < 0 ? 'decreasing' : 'stable';
 
     res.status(200).json({
-      product: {
-        id: product,
-        name: productDetails ? productDetails.name : "Unknown Product",
-      },
-      market: market === "all" ? "All Markets" : market,
-      trend,
-      movingAverages: {
-        sevenDay: movingAverages7,
-        fourteenDay: movingAverages14,
-      },
-      volatility,
-      anomalies,
-      prices: prices.map((p) => ({
-        date: p.date,
-        price: p.price,
-        market: p.market
-          ? {
-              id: p.market._id,
-              name: p.market.name,
-              region: p.market.region || "Unknown",
-            }
-          : "Unknown Market",
-      })),
-    })
+      product,
+      market,
+      trendPercentage: trendPercentage.toFixed(2),
+      trendDirection,
+      historicalPrices
+    });
   } catch (error) {
-    console.error("Error fetching price trends:", error)
-    res.status(500).json({ message: "Internal server error", error: error.message })
+    console.error('Error fetching price trends:', error);
+    res.status(500).json({ message: 'Internal server error', error: error.message });
   }
-}
+};
 
 // =========================
 // 7️⃣ Predict Future Prices
