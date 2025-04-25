@@ -163,6 +163,12 @@ export default function Sidebar() {
                     <NavItem href="/price-trends" icon={LineChart}>
                       Price Trends
                     </NavItem>
+                    <NavItem href="/data-insights" icon={LineChart}>
+                      Data Insights
+                    </NavItem>
+                    <NavItem href="/api-playground" icon={LineChart}>
+                      Api Playground
+                    </NavItem>
                     <NavItem href="/market-comparison" icon={TrendingUp}>
                       Market Trends
                     </NavItem>
