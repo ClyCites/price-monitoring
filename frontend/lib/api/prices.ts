@@ -20,6 +20,11 @@ export interface Price {
   isValid?: boolean
 }
 
+interface HistoricalPrice {
+  date: string | Date;
+  price: number;
+}
+
 export interface PriceTrend {
   product: {
     id: string
@@ -40,6 +45,7 @@ export interface PriceTrend {
     date: string
     price: number
   }>
+  historicalPrices: HistoricalPrice[]
 }
 
 export interface MarketAverage {
