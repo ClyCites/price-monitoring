@@ -170,9 +170,6 @@ export default function Sidebar() {
                     <NavItem href="/data-insights" icon={BarChart}>
                       Data Insights
                     </NavItem>
-                    <NavItem href="/api-playground" icon={BarChart2}>
-                      Api Playground
-                    </NavItem>
                     <NavItem href="/market-comparison" icon={TrendingUp}>
                       Market Trends
                     </NavItem>

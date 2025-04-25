@@ -52,7 +52,7 @@ export default function DataInsightsDashboard() {
   const [currentDate, setCurrentDate] = useState<string>(new Date().toISOString().split("T")[0])
 
   // API base URL
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000"
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL_DEV || "http://localhost:5000"
 
   // Fetch available commodities and locations
   const {
@@ -62,7 +62,7 @@ export default function DataInsightsDashboard() {
   } = useQuery<HealthData>({
     queryKey: ["health"],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/api/v1/health`)
+      const response = await fetch(`${API_BASE_URL}/v1/health`)
       if (!response.ok) {
         throw new Error("Failed to fetch API health data")
       }
@@ -92,7 +92,7 @@ export default function DataInsightsDashboard() {
     queryFn: async () => {
       if (!selectedCommodity || !selectedLocation) return null
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/forecast`, {
+      const response = await fetch(`${API_BASE_URL}/v1/forecast`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -121,7 +121,7 @@ export default function DataInsightsDashboard() {
     queryFn: async () => {
       if (!selectedCommodity) return null
 
-      const response = await fetch(`${API_BASE_URL}/api/v1/market-trends`, {
+      const response = await fetch(`${API_BASE_URL}/v1/market-trends`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
