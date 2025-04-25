@@ -21,6 +21,7 @@ import {
   Store,
   BarChart,
   ShoppingBasket,
+  BarChart2,
 } from "lucide-react";
 
 import Link from "next/link";
@@ -163,10 +164,10 @@ export default function Sidebar() {
                     <NavItem href="/price-trends" icon={LineChart}>
                       Price Trends
                     </NavItem>
-                    <NavItem href="/data-insights" icon={LineChart}>
+                    <NavItem href="/data-insights" icon={BarChart}>
                       Data Insights
                     </NavItem>
-                    <NavItem href="/api-playground" icon={LineChart}>
+                    <NavItem href="/api-playground" icon={BarChart2}>
                       Api Playground
                     </NavItem>
                     <NavItem href="/market-comparison" icon={TrendingUp}>
