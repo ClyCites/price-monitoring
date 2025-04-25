@@ -69,10 +69,16 @@ export const deletePrice = async (id: string) => {
 
 // Get price trends for a specific product and market
 export const getPriceTrends = async (product: string, market: string, days = 30) => {
-  const { data } = await axios.get(`${API_URL}/prices/trends/${product}/${market}`, {
-    params: { days },
-  })
-  return data as PriceTrend
+  try {
+    const { data } = await axios.get(`${API_URL}/prices/trends`, {
+      params: { product, market, days },
+    })
+    console.log("Price trends API response:", data)
+    return data as PriceTrend
+  } catch (error) {
+    console.error("Error fetching price trends:", error)
+    throw error
+  }
 }
 
 // Get historical prices for a product and market

@@ -26,10 +26,20 @@ export default function PriceTrendsChart({ data, isLoading }: PriceTrendsChartPr
   }
 
   // Format dates for display
-  const formattedData = data.map((item) => ({
-    ...item,
-    formattedDate: format(parseISO(item.date), "MMM dd"),
-  }))
+  const formattedData = data.map((item) => {
+    try {
+      return {
+        ...item,
+        formattedDate: format(parseISO(item.date), "MMM dd"),
+      }
+    } catch (error) {
+      console.error("Error parsing date:", item.date, error)
+      return {
+        ...item,
+        formattedDate: "Invalid Date",
+      }
+    }
+  })
 
   return (
     <div className="h-[400px] w-full">
@@ -67,4 +77,3 @@ export default function PriceTrendsChart({ data, isLoading }: PriceTrendsChartPr
     </div>
   )
 }
-

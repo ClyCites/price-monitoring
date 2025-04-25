@@ -57,6 +57,7 @@ export default function Sidebar() {
   return (
     <>
       <button
+        title="Toggle Menu"
         type="button"
         className="lg:hidden fixed top-4 left-4 z-[70] p-2 rounded-lg bg-white dark:bg-[#0F0F12] shadow-md"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -108,10 +109,13 @@ export default function Sidebar() {
                       Overview
                     </NavItem>
                     <NavItem href="#" icon={BarChart2}>
-                      Price Analytics
+                      Add Prices
                     </NavItem>
                     <NavItem href="/price-trends" icon={LineChart}>
                       Price Trends
+                    </NavItem>
+                    <NavItem href="#" icon={House}>
+                      Add Markets
                     </NavItem>
                     <NavItem href="/market-comparison" icon={House}>
                       Market Comparison
