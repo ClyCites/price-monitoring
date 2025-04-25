@@ -63,6 +63,8 @@ export function usePriceTrends(product: string, market: string, days = 30) {
     queryKey: priceKeys.trend(product, market, days),
     queryFn: () => getPriceTrends(product, market, days),
     enabled: !!product && !!market,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
   })
 }
 
