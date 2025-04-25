@@ -1,13 +1,20 @@
+import { Metadata } from "next";
 import EditMarketForm from "@/components/markets/edit-market-form";
 
-interface EditMarketPageProps {
+interface PageProps {
   params: {
     id: string;
   };
 }
 
-export default async function EditMarketPage({ params }: EditMarketPageProps) {
-  const id = params.id;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  return {
+    title: `Edit Market ${params.id}`,
+  };
+}
+
+export default async function EditMarketPage({ params }: PageProps) {
+  const { id } = params;
 
   return (
     <div className="container mx-auto py-6">
