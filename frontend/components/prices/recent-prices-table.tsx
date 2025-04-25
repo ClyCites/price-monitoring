@@ -1,18 +1,28 @@
-"use client"
+"use client";
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Skeleton } from "@/components/ui/skeleton"
-import { format } from "date-fns"
-import type { Price } from "@/lib/api/prices"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
+import type { Price } from "@/lib/api/prices";
 
 interface RecentPricesTableProps {
-  prices: Price[]
-  isLoading: boolean
+  prices: Price[];
+  isLoading: boolean;
 }
 
-export default function RecentPricesTable({ prices, isLoading }: RecentPricesTableProps) {
+export default function RecentPricesTable({
+  prices,
+  isLoading,
+}: RecentPricesTableProps) {
   // Display only the 5 most recent entries
-  const recentPrices = Array.isArray(prices) ? prices.slice(0, 5) : []
+  const recentPrices = Array.isArray(prices) ? prices.slice(0, 5) : [];
 
   if (isLoading) {
     return (
@@ -22,7 +32,7 @@ export default function RecentPricesTable({ prices, isLoading }: RecentPricesTab
           <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
-    )
+    );
   }
 
   if (recentPrices.length === 0) {
@@ -30,7 +40,7 @@ export default function RecentPricesTable({ prices, isLoading }: RecentPricesTab
       <div className="text-center p-8 border rounded-md">
         <p className="text-muted-foreground">No recent price entries found</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -47,23 +57,34 @@ export default function RecentPricesTable({ prices, isLoading }: RecentPricesTab
           </TableRow>
         </TableHeader>
         <TableBody>
-          {recentPrices.map((price: any) => (
-            <TableRow key={price._id}>
-              <TableCell className="font-medium">{price.product.name}</TableCell>
-              <TableCell>{price.market.name}</TableCell>
-              <TableCell>{price.price.toLocaleString()}</TableCell>
-              <TableCell>
-                {typeof price.date === "string"
-                  ? format(new Date(price.date), "MMM dd, yyyy")
-                  : format(price.date, "MMM dd, yyyy")}
-              </TableCell>
-              <TableCell>{price.quantity}</TableCell>
-              <TableCell>{price.unit}</TableCell>
-            </TableRow>
-          ))}
+          {recentPrices.map((price: any) => {
+            // Handle both string and object formats for product and market
+            const productName =
+              typeof price.product === "object"
+                ? price.product.name
+                : price.product;
+            const marketName =
+              typeof price.market === "object"
+                ? price.market.name
+                : price.market;
+
+            return (
+              <TableRow key={price._id}>
+                <TableCell className="font-medium">{productName}</TableCell>
+                <TableCell>{marketName}</TableCell>
+                <TableCell>{price.price.toLocaleString()}</TableCell>
+                <TableCell>
+                  {typeof price.date === "string"
+                    ? format(new Date(price.date), "MMM dd, yyyy")
+                    : format(price.date, "MMM dd, yyyy")}
+                </TableCell>
+                <TableCell>{price.quantity}</TableCell>
+                <TableCell>{price.unit}</TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
-

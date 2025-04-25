@@ -1,5 +1,5 @@
-import MarketManagement from "@/components/markets/market-management"
+import MarketsView from "@/components/markets/markets-view";
 
 export default function MarketsPage() {
-  return <MarketManagement />
+  return <MarketsView />;
 }
