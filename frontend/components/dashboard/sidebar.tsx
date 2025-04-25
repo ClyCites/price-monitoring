@@ -159,7 +159,7 @@ export default function Sidebar() {
                   </div>
                   <div className="space-y-1">
                     <NavItem href="/predictions" icon={BrainCircuit}>
-                      Price Predictions{"("}Dataset{")"}
+                      Price Predictions{"("}Database{")"}
                     </NavItem>
                     <NavItem href="/api-playground" icon={BrainCircuit}>
                       Price Predictions{"("}Trained Model{")"}
