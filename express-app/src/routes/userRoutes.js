@@ -9,13 +9,13 @@ import {
   changeUserStatus,
   bulkAssignRoles,
 } from "../controllers/userController.js"
-import { protect, adminOnly } from "../middleware/authMiddleware.js"
+// import { protect, adminOnly } from "../middleware/authMiddleware.js"
 
 const router = express.Router()
 
 // Admin only routes
-router.get("/", protect, adminOnly, getUsers)
-router.get("/stats", protect, adminOnly, getUserStats)
+router.get("/",  getUsers)
+router.get("/stats",  getUserStats)
 router.post("/assign-role", protect, adminOnly, assignRole)
 router.post("/bulk-assign-roles", protect, adminOnly, bulkAssignRoles)
 
