@@ -110,26 +110,26 @@ export const deletePrice = async (id: string) => {
 // Update the getPriceTrends function to handle ObjectId requirements
 export const getPriceTrends = async (product: string, market: string, days = 30) => {
   try {
-    // Ensure we're passing the correct parameters
-    const params: Record<string, string | number> = {
-      product,
-      days,
-    }
-
-    // Only add market if it's not "all"
-    if (market && market !== "all") {
-      params.market = market
-    }
-
-    const { data } = await axios.get(`${API_URL}/prices/trends`, { params })
-    return data
+    const { data } = await axios.get(`${API_URL}/prices/trends`, {
+      params: { product, market, days },
+    })
+    console.log("Price trends API response:", data)
+    return data as PriceTrend
   } catch (error) {
     console.error("Error fetching price trends:", error)
     throw error
   }
 }
 
-// Update the compareMarketPrices function to handle ObjectId requirements
+// Get historical prices for a product and market
+export const getHistoricalPrices = async (product: string, market: string, limit = 30) => {
+  const { data } = await axios.get(`${API_URL}/prices/history/${product}/${market}`, {
+    params: { limit },
+  })
+  return data as Price[]
+}
+
+// Compare prices across different markets for a product
 export const compareMarketPrices = async (product: string) => {
   try {
     const { data } = await axios.get(`${API_URL}/prices/compare`, {

@@ -64,8 +64,8 @@ export function usePriceTrends(product: string, market: string, days = 30) {
     queryKey: priceKeys.trend(product, market, days),
     queryFn: () => getPriceTrends(product, market, days),
     enabled: !!product && !!market,
-    // Add error handling to better diagnose API issues
-    // Handle errors outside the hook or use a try-catch block in the component
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
   })
 }
 
