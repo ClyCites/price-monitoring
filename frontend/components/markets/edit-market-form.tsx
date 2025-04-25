@@ -1,47 +1,32 @@
-"use client";
+"use client"
 
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { useMarketById, useUpdateMarket } from "@/lib/hooks/use-markets";
-import { useEffect } from "react";
+import { useRouter } from "next/navigation"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import * as z from "zod"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
+import { useMarketById, useUpdateMarket } from "@/lib/hooks/use-markets"
+import { useEffect } from "react"
 
 // Form schema validation
 const marketFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, { message: "Market name must be at least 2 characters" }),
+  name: z.string().min(2, { message: "Market name must be at least 2 characters" }),
   location: z.string().min(2, { message: "Location is required" }),
   region: z.string().min(2, { message: "Region is required" }),
   country: z.string().default("Uganda"),
-});
+})
 
-type MarketFormValues = z.infer<typeof marketFormSchema>;
+type MarketFormValues = z.infer<typeof marketFormSchema>
 
 export default function EditMarketForm({ id }: { id: string }) {
-  const router = useRouter();
-  const { data: market, isLoading: isLoadingMarket } = useMarketById(id);
-  const updateMarketMutation = useUpdateMarket();
+  const router = useRouter()
+  const { data: market, isLoading: isLoadingMarket } = useMarketById(id)
+  const updateMarketMutation = useUpdateMarket()
 
   const form = useForm<MarketFormValues>({
     resolver: zodResolver(marketFormSchema),
@@ -51,7 +36,7 @@ export default function EditMarketForm({ id }: { id: string }) {
       region: "",
       country: "Uganda",
     },
-  });
+  })
 
   // Populate form when market data is loaded
   useEffect(() => {
@@ -61,31 +46,31 @@ export default function EditMarketForm({ id }: { id: string }) {
         location: market.location,
         region: market.region,
         country: market.country || "Uganda",
-      });
+      })
     }
-  }, [market, form]);
+  }, [market, form])
 
   const onSubmit = async (data: MarketFormValues) => {
     // Show loading toast
-    const loadingToast = toast.loading("Updating market...");
+    const loadingToast = toast.loading("Updating market...")
 
     updateMarketMutation.mutate(
       { id, data },
       {
         onSuccess: () => {
           // Dismiss loading toast
-          toast.dismiss(loadingToast);
-          toast.success("Market updated successfully");
-          router.push("/markets");
+          toast.dismiss(loadingToast)
+          toast.success("Market updated successfully")
+          router.push("/markets")
         },
         onError: (error: any) => {
           // Dismiss loading toast
-          toast.dismiss(loadingToast);
-          toast.error(error.message || "Failed to update market");
+          toast.dismiss(loadingToast)
+          toast.error(error.message || "Failed to update market")
         },
-      }
-    );
-  };
+      },
+    )
+  }
 
   if (isLoadingMarket) {
     return (
@@ -96,7 +81,7 @@ export default function EditMarketForm({ id }: { id: string }) {
           </div>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -164,22 +149,16 @@ export default function EditMarketForm({ id }: { id: string }) {
             />
           </CardContent>
           <CardFooter className="flex justify-between mt-5">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push("/markets")}
-            >
+            <Button type="button" variant="outline" onClick={() => router.push("/markets")}>
               Cancel
             </Button>
             <Button type="submit" disabled={updateMarketMutation.isPending}>
-              {updateMarketMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
+              {updateMarketMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Update Market
             </Button>
           </CardFooter>
         </form>
       </Form>
     </Card>
-  );
+  )
 }

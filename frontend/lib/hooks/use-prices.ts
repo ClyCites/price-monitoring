@@ -58,6 +58,7 @@ export function usePriceById(id: string) {
   })
 }
 
+// Update the usePriceTrends function to handle the ObjectId requirement
 export function usePriceTrends(product: string, market: string, days = 30) {
   return useQuery({
     queryKey: priceKeys.trend(product, market, days),

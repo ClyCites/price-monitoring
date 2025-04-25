@@ -28,7 +28,7 @@ export default function MarketComparisonView() {
 
         if (response.data && Array.isArray(response.data)) {
           setProducts(response.data)
-          // Set the first product as default if available
+          // Set the first product's _id as default if available
           if (response.data.length > 0) {
             setSelectedProductId(response.data[0]._id)
           }
@@ -46,34 +46,6 @@ export default function MarketComparisonView() {
 
   // Use the hook for React Query approach with the selected product ID
   const { data: marketPrices = [], isLoading: isDataLoading, error: dataError } = useMarketComparison(selectedProductId)
-
-  // Generate sample data as a fallback
-  const generateSampleMarketData = () => {
-    const markets = ["Nakasero Market", "Mbale Central Market", "Owino Market", "Gulu Main Market", "Mbarara Central Market", "Bugema Market"]
-    const basePrice = 2500
-
-    return markets.map((market) => {
-      const marketFactor = Math.random() * 0.3 + 0.85 // Random factor between 0.85 and 1.15
-      const price = Math.round(basePrice * marketFactor)
-
-      return {
-        _id: Math.random().toString(36).substring(2, 9),
-        product: selectedProductId,
-        market: { _id: Math.random().toString(36).substring(2, 9), name: market },
-        price,
-        date: new Date().toISOString(),
-        productType: "solid" as const,
-        quantity: 1,
-        unit: "kg" as const,
-        currency: "UGX",
-      }
-    })
-  }
-
-  // Use sample data if API fails
-  const displayData = marketPrices.length > 0 ? marketPrices : generateSampleMarketData()
-  const isLoading = isLoadingProducts || isDataLoading
-  const error = productError || dataError
 
   // Get the selected product name for display
   const getSelectedProductName = () => {
@@ -106,7 +78,7 @@ export default function MarketComparisonView() {
             </Select>
           </div>
 
-          {error ? (
+          {productError || dataError ? (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Error</AlertTitle>
@@ -114,8 +86,12 @@ export default function MarketComparisonView() {
             </Alert>
           ) : (
             <div className="space-y-6">
-              <MarketComparisonChart data={displayData} isLoading={isLoading} productName={getSelectedProductName()} />
-              <MarketComparisonTable data={displayData} isLoading={isLoading} />
+              <MarketComparisonChart
+                data={marketPrices}
+                isLoading={isLoadingProducts || isDataLoading}
+                productName={getSelectedProductName()}
+              />
+              <MarketComparisonTable data={marketPrices} isLoading={isLoadingProducts || isDataLoading} />
             </div>
           )}
         </CardContent>
