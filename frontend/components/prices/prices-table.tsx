@@ -15,11 +15,15 @@ import type { Price } from "@/lib/api/prices";
 interface RecentPricesTableProps {
   prices: Price[];
   isLoading: boolean;
+  onDelete: (id: string) => Promise<void>;
+  isDeleting?: boolean; 
 }
 
 export default function RecentPricesTable({
   prices,
   isLoading,
+  onDelete,
+  isDeleting = false, // Default to false if not provided
 }: RecentPricesTableProps) {
   // Display only the 5 most recent entries
   const recentPrices = Array.isArray(prices) ? prices.slice(0, 5) : [];
