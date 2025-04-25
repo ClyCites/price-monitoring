@@ -17,10 +17,10 @@ const router = express.Router()
 router.get("/",  getUsers)
 router.get("/stats",  getUserStats)
 router.post("/assign-role", assignRole)
-router.post("/bulk-assign-roles", protect, adminOnly, bulkAssignRoles)
+router.post("/bulk-assign-roles", bulkAssignRoles)
 
 // Routes for specific users
-router.get("/:id", protect, getUserById)
+router.get("/:id", getUserById)
 router.put("/:id", protect, updateUser)
 router.delete("/:id", protect, adminOnly, deleteUser)
 router.patch("/:id/status", protect, adminOnly, changeUserStatus)
