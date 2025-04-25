@@ -27,19 +27,19 @@ import {
   generateMarketReport,
   scheduleReport,
 } from "../controllers/priceController.js"
-import { protect, adminOnly, agentOnly } from "../middleware/authMiddleware.js"
+// import { protect, adminOnly, agentOnly } from "../middleware/authMiddleware.js"
 
 const router = express.Router()
 
 // Price Entry Routes
-router.post("/", protect, agentOnly, addPrice)
+router.post("/", addPrice)
 router.get("/", getPrices)
 
 // IMPORTANT: Place all specific routes BEFORE the :id route
 // Analysis & Insights Routes - These must come before the /:id route
 router.get("/trends", getPriceTrends)
 router.post("/predict", predictPrice)
-router.post("/bulk-import", protect, agentOnly, bulkImportPrices)
+router.post("/bulk-import", bulkImportPrices)
 router.get("/historical", getHistoricalPrices)
 router.get("/top-markets", getTopMarketsForProduct)
 router.get("/anomalies", detectPriceAnomalies)
@@ -63,8 +63,8 @@ router.post("/schedule-report", scheduleReport)
 
 // ID-specific routes - These must come AFTER all other specific routes
 router.get("/:id", getPriceById)
-router.put("/:id", protect, agentOnly, updatePrice)
-router.delete("/:id", protect, adminOnly, deletePrice)
+router.put("/:id", updatePrice)
+router.delete("/:id", deletePrice)
 router.get("/price-summary/:productId", getPriceSummary)
 
 export default router
