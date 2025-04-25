@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -44,7 +44,7 @@ export default function PredictionPlayground() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
   // Fetch products and markets on component mount
-  useState(() => {
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoadingData(true)
@@ -76,7 +76,7 @@ export default function PredictionPlayground() {
   }, [])
 
   // Fetch historical prices when product or market changes
-  useState(() => {
+  useEffect(() => {
     const fetchHistoricalPrices = async () => {
       if (!selectedProduct || !selectedMarket) return
 
