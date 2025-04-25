@@ -129,6 +129,9 @@ export default function Sidebar() {
                     <NavItem href="/market-comparison" icon={BarChart}>
                       Market Comparison
                     </NavItem>
+                    <NavItem href="/predictions" icon={BrainCircuit}>
+                      Price Predictions
+                    </NavItem>
                     <NavItem href="/add-market" icon={Store}>
                       Add Markets
                     </NavItem>
