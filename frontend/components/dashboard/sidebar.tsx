@@ -161,14 +161,14 @@ export default function Sidebar() {
                     <NavItem href="/predictions" icon={BrainCircuit}>
                       Price Predictions{"("}Database{")"}
                     </NavItem>
-                    <NavItem href="/api-playground" icon={BrainCircuit}>
+                    <NavItem href="/data-insights" icon={BrainCircuit}>
                       Price Predictions{"("}AI Model{")"}
                     </NavItem>
                     <NavItem href="/price-trends" icon={LineChart}>
                       Price Trends
                     </NavItem>
-                    <NavItem href="/data-insights" icon={BarChart}>
-                      Data Insights
+                    <NavItem href="/api-playground" icon={BarChart}>
+                      Api Playground
                     </NavItem>
                     <NavItem href="/market-comparison" icon={TrendingUp}>
                       Market Trends
