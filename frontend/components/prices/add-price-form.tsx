@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
+import { useState, useEffect } from "react"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
@@ -12,51 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { useAddPrice } from "@/lib/hooks/use-prices"
 import { toast } from "sonner"
-
-// List of agricultural products
-const products = [
-  "Rice",
-  "Maize",
-  "Beans",
-  "Coffee",
-  "Tea",
-  "Cassava",
-  "Sweet Potatoes",
-  "Irish Potatoes",
-  "Bananas",
-  "Tomatoes",
-  "Onions",
-  "Cabbage",
-  "Carrots",
-  "Pineapples",
-  "Mangoes",
-  "Beef",
-  "Chicken",
-  "Pork",
-  "Fish",
-  "Milk",
-  "Eggs",
-]
-
-// List of markets
-const markets = [
-  "Kampala Central",
-  "Owino Market",
-  "Nakasero",
-  "Kalerwe",
-  "Kikuubo",
-  "Nateete",
-  "Kireka",
-  "Ntinda",
-  "Mukono",
-  "Jinja",
-  "Masaka",
-  "Gulu",
-  "Mbarara",
-  "Arua",
-  "Mbale",
-  "Lira",
-]
+import axios from "axios"
 
 // Form schema validation
 const priceFormSchema = z.object({
@@ -82,6 +39,37 @@ type PriceFormValues = z.infer<typeof priceFormSchema>
 export default function AddPriceForm() {
   const router = useRouter()
   const addPriceMutation = useAddPrice()
+  const [products, setProducts] = useState<Array<{ _id: string; name: string; category: string }>>([])
+  const [markets, setMarkets] = useState<Array<{ _id: string; name: string }>>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+
+  // Fetch products and markets
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const [productsRes, marketsRes] = await Promise.all([
+          axios.get(`${API_URL}/products`),
+          axios.get(`${API_URL}/markets`),
+        ])
+
+        setProducts(productsRes.data)
+        setMarkets(marketsRes.data)
+      } catch (err) {
+        console.error("Error fetching data:", err)
+        setError("Failed to load products and markets")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [API_URL])
 
   const form = useForm<PriceFormValues>({
     resolver: zodResolver(priceFormSchema),
@@ -115,6 +103,36 @@ export default function AddPriceForm() {
     })
   }
 
+  if (isLoading) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Add New Price Entry</CardTitle>
+        </CardHeader>
+        <CardContent className="flex justify-center items-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="ml-2">Loading form data...</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-red-500">{error}</p>
+          <Button className="mt-4" onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
@@ -139,8 +157,8 @@ export default function AddPriceForm() {
                       </FormControl>
                       <SelectContent>
                         {products.map((product) => (
-                          <SelectItem key={product} value={product.toLowerCase()}>
-                            {product}
+                          <SelectItem key={product._id} value={product._id}>
+                            {product.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -165,8 +183,8 @@ export default function AddPriceForm() {
                       </FormControl>
                       <SelectContent>
                         {markets.map((market) => (
-                          <SelectItem key={market} value={market}>
-                            {market}
+                          <SelectItem key={market._id} value={market._id}>
+                            {market.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -308,4 +326,3 @@ export default function AddPriceForm() {
     </Card>
   )
 }
-

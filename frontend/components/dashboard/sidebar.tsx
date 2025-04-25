@@ -3,7 +3,6 @@
 import type React from "react"
 
 import {
-  BarChart2,
   LineChart,
   Wheat,
   TrendingUp,
@@ -17,10 +16,15 @@ import {
   Map,
   LogIn,
   UserPlus,
-  House,
+  HomeIcon as House,
+  Home,
+  PlusCircle,
+  ListChecks,
+  BarChart,
+  ShoppingBasket,
+  Store,
 } from "lucide-react"
 
-import { Home } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { useAuth } from "@/lib/context/auth-context"
@@ -107,14 +111,23 @@ export default function Sidebar() {
                     <NavItem href="/dashboard" icon={Home}>
                       Overview
                     </NavItem>
-                    <NavItem href="#" icon={BarChart2}>
-                      Price Analytics
+                    <NavItem href="/prices" icon={ListChecks}>
+                      Price Management
                     </NavItem>
                     <NavItem href="/price-trends" icon={LineChart}>
                       Price Trends
                     </NavItem>
                     <NavItem href="/market-comparison" icon={House}>
                       Market Comparison
+                    </NavItem>
+                    <NavItem href="/predictions" icon={BrainCircuit}>
+                      Price Predictions
+                    </NavItem>
+                    <NavItem href="/markets" icon={Store}>
+                      Markets
+                    </NavItem>
+                    <NavItem href="/products" icon={ShoppingBasket}>
+                      Products
                     </NavItem>
                     <NavItem href="#" icon={Map}>
                       Regional Data
@@ -124,11 +137,25 @@ export default function Sidebar() {
 
                 <div>
                   <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                    AI Predictions
+                    Data Entry
                   </div>
                   <div className="space-y-1">
-                    <NavItem href="#" icon={BrainCircuit}>
-                      Price Forecasts
+                    <NavItem href="/add-price" icon={PlusCircle}>
+                      Add Price Entry
+                    </NavItem>
+                    <NavItem href="#" icon={Upload}>
+                      Bulk Upload
+                    </NavItem>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Analysis
+                  </div>
+                  <div className="space-y-1">
+                    <NavItem href="#" icon={BarChart}>
+                      Price Analytics
                     </NavItem>
                     <NavItem href="#" icon={TrendingUp}>
                       Market Trends
@@ -144,9 +171,6 @@ export default function Sidebar() {
                     Data Management
                   </div>
                   <div className="space-y-1">
-                    <NavItem href="#" icon={Upload}>
-                      Upload Data
-                    </NavItem>
                     <NavItem href="#" icon={Database}>
                       Data Sources
                     </NavItem>
@@ -183,4 +207,3 @@ export default function Sidebar() {
     </>
   )
 }
-

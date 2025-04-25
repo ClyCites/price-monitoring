@@ -1,90 +1,75 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { usePriceTrends } from "@/lib/hooks/use-prices"
 import PriceTrendsChart from "./price-trends-chart"
-
-// Sample products and markets
-const products = ["Rice", "Maize", "Beans", "Coffee", "Tea"]
-
-const markets = ["Kampala Central", "Owino Market", "Nakasero", "Kalerwe", "Kikuubo"]
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import axios from "axios"
 
 export default function PriceTrendsView() {
-  const [selectedProduct, setSelectedProduct] = useState("rice")
-  const [selectedMarket, setSelectedMarket] = useState("Kampala Central")
+  const [products, setProducts] = useState<{ _id: string; name: string }[]>([])
+  const [markets, setMarkets] = useState<{ _id: string; name: string }[]>([])
+  const [selectedProduct, setSelectedProduct] = useState("")
+  const [selectedMarket, setSelectedMarket] = useState("")
   const [timeRange, setTimeRange] = useState("30") // days
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
+
+  // Fetch products and markets
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      setError(null)
+
+      try {
+        const [productsRes, marketsRes] = await Promise.all([
+          axios.get(`${API_URL}/products`),
+          axios.get(`${API_URL}/markets`),
+        ])
+
+        setProducts(productsRes.data)
+        setMarkets(marketsRes.data)
+
+        // Set default selections if data is available
+        if (productsRes.data.length > 0) {
+          setSelectedProduct(productsRes.data[0]._id)
+        }
+        if (marketsRes.data.length > 0) {
+          setSelectedMarket(marketsRes.data[0]._id)
+        }
+      } catch (err) {
+        console.error("Error fetching data:", err)
+        setError("Failed to load products and markets")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [API_URL])
 
   // Fetch trend data with React Query
-  const { data: trendData, isLoading } = usePriceTrends(selectedProduct, selectedMarket, Number.parseInt(timeRange))
+  const {
+    data: trendData,
+    isLoading: isTrendLoading,
+    error: trendError,
+  } = usePriceTrends(selectedProduct, selectedMarket, Number.parseInt(timeRange))
 
-  // Helper function to generate sample trend data when API is not available
-  const generateSampleTrendData = (product: string, market: string, days: number) => {
-    const historicalPrices = []
-    const today = new Date()
-    let basePrice =
-      product === "rice"
-        ? 2500
-        : product === "maize"
-          ? 1800
-          : product === "beans"
-            ? 3200
-            : product === "coffee"
-              ? 5500
-              : product === "tea"
-                ? 4000
-                : 2000
-
-    // Adjust base price based on market
-    const marketMultiplier =
-      market === "Kampala Central"
-        ? 1.1
-        : market === "Owino Market"
-          ? 1.0
-          : market === "Nakasero"
-            ? 1.2
-            : market === "Kalerwe"
-              ? 0.95
-              : market === "Kikuubo"
-                ? 1.05
-                : 1.0
-
-    basePrice = basePrice * marketMultiplier
-
-    // Generate price points for the specified number of days
-    for (let i = days; i >= 0; i--) {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
-
-      // Add some randomness to prices
-      const randomVariation = 1 + (Math.random() * 0.1 - 0.05) // -5% to +5%
-      const price = Math.round(basePrice * randomVariation)
-
-      // Add slight upward trend over time
-      const trendFactor = 1 + 0.002 * (days - i)
-
-      historicalPrices.push({
-        date: date.toISOString().split("T")[0],
-        price: Math.round(price * trendFactor),
-      })
-    }
-
-    // Calculate trend percentage
-    const firstPrice = historicalPrices[0].price
-    const latestPrice = historicalPrices[historicalPrices.length - 1].price
-    const trendPercentage = ((latestPrice - firstPrice) / firstPrice) * 100
-
-    return {
-      product,
-      market,
-      trendPercentage: trendPercentage.toFixed(2),
-      historicalPrices,
-    }
+  // Get product and market names for display
+  const getProductName = () => {
+    const product = products.find((p) => p._id === selectedProduct)
+    return product ? product.name : ""
   }
 
-  // Use sample data for demo
-  const sampleTrendData = generateSampleTrendData(selectedProduct, selectedMarket, Number.parseInt(timeRange))
+  const getMarketName = () => {
+    const market = markets.find((m) => m._id === selectedMarket)
+    return market ? market.name : ""
+  }
 
   return (
     <div className="container mx-auto space-y-6">
@@ -99,27 +84,27 @@ export default function PriceTrendsView() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+            <Select value={selectedProduct} onValueChange={setSelectedProduct} disabled={isLoading}>
               <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Select product" />
+                <SelectValue placeholder={isLoading ? "Loading products..." : "Select product"} />
               </SelectTrigger>
               <SelectContent>
                 {products.map((product) => (
-                  <SelectItem key={product} value={product.toLowerCase()}>
-                    {product}
+                  <SelectItem key={product._id} value={product._id}>
+                    {product.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
-            <Select value={selectedMarket} onValueChange={setSelectedMarket}>
+            <Select value={selectedMarket} onValueChange={setSelectedMarket} disabled={isLoading}>
               <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Select market" />
+                <SelectValue placeholder={isLoading ? "Loading markets..." : "Select market"} />
               </SelectTrigger>
               <SelectContent>
                 {markets.map((market) => (
-                  <SelectItem key={market} value={market}>
-                    {market}
+                  <SelectItem key={market._id} value={market._id}>
+                    {market.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -139,27 +124,35 @@ export default function PriceTrendsView() {
             </Select>
           </div>
 
-          <div className="space-y-4">
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-md">
-              <p className="text-sm font-medium">
-                Price trend for {selectedProduct.charAt(0).toUpperCase() + selectedProduct.slice(1)} in {selectedMarket}
-                :
-                <span
-                  className={`ml-2 font-bold ${
-                    Number.parseFloat(sampleTrendData.trendPercentage) >= 0 ? "text-green-600" : "text-red-600"
-                  }`}
-                >
-                  {Number.parseFloat(sampleTrendData.trendPercentage) >= 0 ? "+" : ""}
-                  {sampleTrendData.trendPercentage}%
-                </span>
-              </p>
-            </div>
+          {error || trendError ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Error</AlertTitle>
+              <AlertDescription>{error || "Failed to load price trend data. Please try again later."}</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-4">
+              {trendData && trendData.trend && (
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-md">
+                  <p className="text-sm font-medium">
+                    Price trend for {getProductName()} in {getMarketName()}:
+                    <span
+                      className={`ml-2 font-bold ${
+                        trendData.trend.percentageChange >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {trendData.trend.percentageChange >= 0 ? "+" : ""}
+                      {trendData.trend.percentageChange.toFixed(2)}%
+                    </span>
+                  </p>
+                </div>
+              )}
 
-            <PriceTrendsChart data={sampleTrendData.historicalPrices} isLoading={isLoading} />
-          </div>
+              <PriceTrendsChart data={trendData?.prices || []} isLoading={isLoading || isTrendLoading} />
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
   )
 }
-

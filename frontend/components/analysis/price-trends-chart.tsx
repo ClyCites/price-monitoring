@@ -28,7 +28,7 @@ export default function PriceTrendsChart({ data, isLoading }: PriceTrendsChartPr
   // Format dates for display
   const formattedData = data.map((item) => ({
     ...item,
-    formattedDate: format(parseISO(item.date), "MMM dd"),
+    formattedDate: format(typeof item.date === "string" ? parseISO(item.date) : item.date, "MMM dd"),
   }))
 
   return (
@@ -67,4 +67,3 @@ export default function PriceTrendsChart({ data, isLoading }: PriceTrendsChartPr
     </div>
   )
 }
-
