@@ -7,7 +7,6 @@ interface EditMarketPageProps {
 }
 
 export default async function EditMarketPage({ params }: EditMarketPageProps) {
-  // Await the params to resolve the error
   const id = params.id;
 
   return (
