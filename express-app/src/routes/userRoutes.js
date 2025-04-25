@@ -22,7 +22,7 @@ router.post("/bulk-assign-roles", bulkAssignRoles)
 // Routes for specific users
 router.get("/:id", getUserById)
 router.put("/:id", updateUser)
-router.delete("/:id", protect, adminOnly, deleteUser)
-router.patch("/:id/status", protect, adminOnly, changeUserStatus)
+router.delete("/:id",  deleteUser)
+router.patch("/:id/status", changeUserStatus)
 
 export default router
