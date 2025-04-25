@@ -57,29 +57,43 @@ export default function RecentPricesTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {recentPrices.map((price: any) => {
+          {recentPrices.map((price: any, index) => {
             // Handle both string and object formats for product and market
             const productName =
               typeof price.product === "object"
                 ? price.product.name
-                : price.product;
+                : typeof price.product === "string"
+                ? price.product
+                : "Unknown Product";
+
             const marketName =
               typeof price.market === "object"
                 ? price.market.name
-                : price.market;
+                : typeof price.market === "string"
+                ? price.market
+                : "Unknown Market";
+
+            // Format date safely
+            const formatDate = (dateValue: string | Date | undefined): string => {
+              try {
+              if (!dateValue) return "N/A";
+              return typeof dateValue === "string"
+                ? format(new Date(dateValue), "MMM dd, yyyy")
+                : format(dateValue, "MMM dd, yyyy");
+              } catch (error) {
+              console.error("Error formatting date:", error);
+              return "Invalid Date";
+              }
+            };
 
             return (
-              <TableRow key={price._id}>
+              <TableRow key={price._id || index}>
                 <TableCell className="font-medium">{productName}</TableCell>
                 <TableCell>{marketName}</TableCell>
-                <TableCell>{price.price.toLocaleString()}</TableCell>
-                <TableCell>
-                  {typeof price.date === "string"
-                    ? format(new Date(price.date), "MMM dd, yyyy")
-                    : format(price.date, "MMM dd, yyyy")}
-                </TableCell>
-                <TableCell>{price.quantity}</TableCell>
-                <TableCell>{price.unit}</TableCell>
+                <TableCell>{price.price?.toLocaleString() || "N/A"}</TableCell>
+                <TableCell>{formatDate(price.date)}</TableCell>
+                <TableCell>{price.quantity || 1}</TableCell>
+                <TableCell>{price.unit || "kg"}</TableCell>
               </TableRow>
             );
           })}

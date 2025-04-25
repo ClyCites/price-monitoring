@@ -123,23 +123,8 @@ export default function Sidebar() {
                     <NavItem href="/dashboard" icon={Home}>
                       Overview
                     </NavItem>
-                    <NavItem href="/price-trends" icon={LineChart}>
-                      Price Trends
-                    </NavItem>
-                    <NavItem href="/market-comparison" icon={BarChart}>
-                      Market Comparison
-                    </NavItem>
-                    <NavItem href="/predictions" icon={BrainCircuit}>
-                      Price Predictions
-                    </NavItem>
-                    <NavItem href="/add-market" icon={Store}>
-                      Add Markets
-                    </NavItem>
                     <NavItem href="/markets" icon={Store}>
                       Manage Markets
-                    </NavItem>
-                    <NavItem href="/add-price" icon={PlusCircle}>
-                      Add Prices
                     </NavItem>
                     <NavItem href="/prices" icon={Database}>
                       Manage Prices
@@ -155,6 +140,9 @@ export default function Sidebar() {
                     Data Entry
                   </div>
                   <div className="space-y-1">
+                    <NavItem href="/add-market" icon={Store}>
+                      Add Markets
+                    </NavItem>
                     <NavItem href="/add-price" icon={PlusCircle}>
                       Add Price Entry
                     </NavItem>
@@ -169,10 +157,13 @@ export default function Sidebar() {
                     Analysis
                   </div>
                   <div className="space-y-1">
-                    <NavItem href="#" icon={BarChart}>
-                      Price Analytics
+                    <NavItem href="/predictions" icon={BrainCircuit}>
+                      Price Predictions
                     </NavItem>
-                    <NavItem href="#" icon={TrendingUp}>
+                    <NavItem href="/price-trends" icon={LineChart}>
+                      Price Trends
+                    </NavItem>
+                    <NavItem href="/market-comparison" icon={TrendingUp}>
                       Market Trends
                     </NavItem>
                     <NavItem href="#" icon={ShoppingBasket}>
