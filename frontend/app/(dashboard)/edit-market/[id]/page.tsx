@@ -1,19 +1,14 @@
-import { Metadata } from "next";
+// app/(dashboard)/edit-market/[id]/page.tsx
+
 import EditMarketForm from "@/components/markets/edit-market-form";
 
-interface PageProps {
+interface EditMarketPageProps {
   params: {
     id: string;
   };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  return {
-    title: `Edit Market ${params.id}`,
-  };
-}
-
-export default async function EditMarketPage({ params }: PageProps) {
+export default function EditMarketPage({ params }: EditMarketPageProps) {
   const { id } = params;
 
   return (
