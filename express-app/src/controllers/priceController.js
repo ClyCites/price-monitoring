@@ -664,23 +664,31 @@ export const getAveragePricePerMarket = async (req, res) => {
 // =========================
 export const compareMarketPrices = async (req, res) => {
   try {
-    const { product, markets, days = 30 } = req.query
+    const { product } = req.query;
 
-    if (!product || !markets) {
-      return res.status(400).json({ message: "Product and markets are required" })
+    if (!product) {
+      return res.status(400).json({ message: 'Product is required' });
     }
 
-    // Parse markets string into array
-    const marketIds = markets.split(",")
+    // Ensure product ID is properly cast to ObjectId
+    const productId = mongoose.Types.ObjectId.isValid(product) ? new mongoose.Types.ObjectId(product) : null;
 
-    // Get market comparison
-    const comparison = await analyzeMarketPrices(product, marketIds, Number(days))
+    if (!productId) {
+      return res.status(400).json({ message: 'Invalid product ID' });
+    }
 
-    res.status(200).json(comparison)
+    // Fetch prices for the product across different markets
+    const marketPrices = await Price.find({ product: productId }).populate('market', 'name location');
+
+    if (!marketPrices.length) {
+      return res.status(404).json({ message: 'No price data found for this product' });
+    }
+
+    res.status(200).json(marketPrices);
   } catch (error) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: error.message });
   }
-}
+};
 
 // =========================
 // 17️⃣ Get Price Volatility
