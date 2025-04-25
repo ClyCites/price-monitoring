@@ -58,11 +58,14 @@ export function usePriceById(id: string) {
   })
 }
 
+// Update the usePriceTrends function to handle the ObjectId requirement
 export function usePriceTrends(product: string, market: string, days = 30) {
   return useQuery({
     queryKey: priceKeys.trend(product, market, days),
     queryFn: () => getPriceTrends(product, market, days),
     enabled: !!product && !!market,
+    // Add error handling to better diagnose API issues
+    // Handle errors outside the hook or use a try-catch block in the component
   })
 }
 

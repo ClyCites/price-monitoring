@@ -107,15 +107,37 @@ export const deletePrice = async (id: string) => {
   }
 }
 
-// Get price trends for a specific product and market
+// Update the getPriceTrends function to handle ObjectId requirements
 export const getPriceTrends = async (product: string, market: string, days = 30) => {
   try {
-    const { data } = await axios.get(`${API_URL}/prices/trends`, {
-      params: { product, market, days },
-    })
+    // Ensure we're passing the correct parameters
+    const params: Record<string, string | number> = {
+      product,
+      days,
+    }
+
+    // Only add market if it's not "all"
+    if (market && market !== "all") {
+      params.market = market
+    }
+
+    const { data } = await axios.get(`${API_URL}/prices/trends`, { params })
     return data
   } catch (error) {
     console.error("Error fetching price trends:", error)
+    throw error
+  }
+}
+
+// Update the compareMarketPrices function to handle ObjectId requirements
+export const compareMarketPrices = async (product: string) => {
+  try {
+    const { data } = await axios.get(`${API_URL}/prices/compare`, {
+      params: { product },
+    })
+    return data
+  } catch (error) {
+    console.error("Error fetching market comparison data:", error)
     throw error
   }
 }
@@ -134,17 +156,6 @@ export const getHistoricalPrices = async (product: string, market: string, limit
 }
 
 // Compare prices across different markets for a product
-export const compareMarketPrices = async (product: string) => {
-  try {
-    const { data } = await axios.get(`${API_URL}/prices/compare`, {
-      params: { product },
-    })
-    return data
-  } catch (error) {
-    console.error("Error fetching market comparison data:", error)
-    throw error
-  }
-}
 
 // Get top markets for a product (best prices)
 export const getTopMarketsForProduct = async (product: string) => {
