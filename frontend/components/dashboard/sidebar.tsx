@@ -3,6 +3,7 @@
 import type React from "react"
 
 import {
+  BarChart2,
   LineChart,
   Wheat,
   TrendingUp,

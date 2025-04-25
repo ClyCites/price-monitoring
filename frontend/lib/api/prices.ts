@@ -122,12 +122,12 @@ export const getPriceTrends = async (product: string, market: string, days = 30)
 }
 
 // Get historical prices for a product and market
-export const getHistoricalPrices = async (product: string, market: string, limit = 30) => {
-  const { data } = await axios.get(`${API_URL}/prices/history/${product}/${market}`, {
-    params: { limit },
-  })
-  return data as Price[]
-}
+// export const getHistoricalPrices = async (product: string, market: string, limit = 30) => {
+//   const { data } = await axios.get(`${API_URL}/prices/history/${product}/${market}`, {
+//     params: { limit },
+//   })
+//   return data as Price[]
+// }
 
 // Compare prices across different markets for a product
 export const compareMarketPrices = async (product: string) => {
