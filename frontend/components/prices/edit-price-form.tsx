@@ -29,12 +29,13 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useAddPrice } from "@/lib/hooks/use-prices";
+import { usePriceById, useUpdatePrice } from "@/lib/hooks/use-prices";
 import { toast } from "sonner";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { format } from "date-fns";
 
 // Form schema validation
 const priceFormSchema = z.object({
@@ -57,9 +58,10 @@ const priceFormSchema = z.object({
 
 type PriceFormValues = z.infer<typeof priceFormSchema>;
 
-export default function AddPriceForm() {
+export default function EditPriceForm({ id }: { id: string }) {
   const router = useRouter();
-  const addPriceMutation = useAddPrice();
+  const { data: priceData, isLoading: isLoadingPrice } = usePriceById(id);
+  const updatePriceMutation = useUpdatePrice();
 
   // State for products and markets
   const [products, setProducts] = useState<
@@ -78,8 +80,34 @@ export default function AddPriceForm() {
   const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [fetchError, setFetchError] = useState(null);
 
+  // Debug state to track form values
+  const [formDebug, setFormDebug] = useState<{
+    productId: string | null;
+    marketId: string | null;
+    priceDataLoaded: boolean;
+  }>({
+    productId: null,
+    marketId: null,
+    priceDataLoaded: false,
+  });
+
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+  const form = useForm<PriceFormValues>({
+    resolver: zodResolver(priceFormSchema),
+    defaultValues: {
+      product: "",
+      market: "",
+      price: 0,
+      currency: "UGX",
+      date: new Date().toISOString().split("T")[0],
+      productType: "solid",
+      quantity: 1,
+      unit: "kg",
+      category: "grain",
+    },
+  });
 
   // Fetch products from API
   useEffect(() => {
@@ -216,55 +244,103 @@ export default function AddPriceForm() {
     fetchMarkets();
   }, [API_URL]);
 
-  const form = useForm<PriceFormValues>({
-    resolver: zodResolver(priceFormSchema),
-    defaultValues: {
-      product: "",
-      market: "",
-      price: 0,
-      currency: "UGX",
-      date: new Date().toISOString().split("T")[0],
-      productType: "solid",
-      quantity: 1,
-      unit: "kg",
-      category: "grain",
-    },
-  });
+  // Populate form when price data is loaded
+  useEffect(() => {
+    if (priceData && !isLoadingProducts && !isLoadingMarkets) {
+      const formatDate = () => {
+        try {
+          if (typeof priceData.date === "string") {
+            const dateObj = new Date(priceData.date);
+            return format(dateObj, "yyyy-MM-dd");
+          } else if (priceData.date instanceof Date) {
+            return format(priceData.date, "yyyy-MM-dd");
+          }
+        } catch (e) {
+          console.error("Error formatting date:", e);
+          return new Date().toISOString().split("T")[0];
+        }
+        return new Date().toISOString().split("T")[0];
+      };
+
+      // Extract product ID correctly
+      let productId = "";
+      if (typeof priceData.product === "object" && priceData.product !== null) {
+        productId = priceData.product._id;
+      } else if (typeof priceData.product === "string") {
+        productId = priceData.product;
+      }
+
+      // Extract market ID correctly
+      let marketId = "";
+      if (typeof priceData.market === "object" && priceData.market !== null) {
+        marketId = priceData.market._id;
+      } else if (typeof priceData.market === "string") {
+        marketId = priceData.market;
+      }
+
+      // For debugging
+      setFormDebug({
+        productId,
+        marketId,
+        priceDataLoaded: true,
+      });
+
+      // Set form values
+      form.reset({
+        product: productId,
+        market: marketId,
+        price: priceData.price,
+        currency: priceData.currency || "UGX",
+        date: formatDate(),
+        productType: priceData.productType,
+        quantity: priceData.quantity,
+        unit: priceData.unit,
+        category: priceData.category || "grain",
+      });
+    }
+  }, [priceData, form, isLoadingProducts, isLoadingMarkets]);
 
   const onSubmit = async (data: PriceFormValues) => {
     // Show loading toast
-    const loadingToast = toast.loading("Adding price entry...");
+    const loadingToast = toast.loading("Updating price entry...");
 
-    // Find the selected product and market objects
-    const selectedProduct = products.find((p) => p._id === data.product);
-    const selectedMarket = markets.find((m) => m._id === data.market);
-
-    // Prepare the data for submission
-    const submissionData = {
-      ...data,
-      product: selectedProduct?._id || data.product,
-      market: selectedMarket?._id || data.market,
-    };
-
-    addPriceMutation.mutate(submissionData, {
-      onSuccess: () => {
-        // Dismiss loading toast
-        toast.dismiss(loadingToast);
-        toast.success("Price entry added successfully");
-        router.push("/prices");
-      },
-      onError: (error: any) => {
-        // Dismiss loading toast
-        toast.dismiss(loadingToast);
-        toast.error(error.message || "Failed to add price entry");
-      },
-    });
+    updatePriceMutation.mutate(
+      { id, data },
+      {
+        onSuccess: () => {
+          // Dismiss loading toast
+          toast.dismiss(loadingToast);
+          toast.success("Price entry updated successfully");
+          router.push("/prices");
+        },
+        onError: (error: any) => {
+          // Dismiss loading toast
+          toast.dismiss(loadingToast);
+          toast.error(error.message || "Failed to update price entry");
+        },
+      }
+    );
   };
+
+  // Combined loading state
+  const isLoading = isLoadingPrice || isLoadingProducts || isLoadingMarkets;
+
+  if (isLoadingPrice) {
+    return (
+      <Card className="max-w-2xl mx-auto">
+        <CardContent className="pt-6">
+          <div className="flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Add New Price Entry</CardTitle>
+        <CardTitle>Edit Price Entry</CardTitle>
       </CardHeader>
 
       {fetchError && (
@@ -293,7 +369,7 @@ export default function AddPriceForm() {
                     <FormLabel>Product</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                       disabled={isLoadingProducts}
                     >
                       <FormControl>
@@ -329,7 +405,7 @@ export default function AddPriceForm() {
                     <FormLabel>Market</FormLabel>
                     <Select
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      value={field.value}
                       disabled={isLoadingMarkets}
                     >
                       <FormControl>
@@ -393,10 +469,7 @@ export default function AddPriceForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Product Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select type" />
@@ -419,10 +492,7 @@ export default function AddPriceForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -463,10 +533,7 @@ export default function AddPriceForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Unit</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select unit" />
@@ -491,11 +558,11 @@ export default function AddPriceForm() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={addPriceMutation.isPending}>
-              {addPriceMutation.isPending && (
+            <Button type="submit" disabled={updatePriceMutation.isPending}>
+              {updatePriceMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Submit
+              Update Price
             </Button>
           </CardFooter>
         </form>
