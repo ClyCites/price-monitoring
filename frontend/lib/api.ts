@@ -28,6 +28,7 @@ export const api = {
   post: (url: string, data = {}) => axiosInstance.post(url, data),
   put: (url: string, data = {}) => axiosInstance.put(url, data),
   delete: (url: string) => axiosInstance.delete(url),
+  patch: (url: string, data = {}) => axiosInstance.patch(url, data),
 
   // Auth token management
   setAuthToken: (token: string) => {
