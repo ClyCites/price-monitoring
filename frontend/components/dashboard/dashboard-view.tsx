@@ -15,7 +15,7 @@ import PriceOverviewChart from "./price-overview-chart";
 import MarketInsightsChart from "./market-insights-chart";
 import RecentPricesTable from "../prices/recent-prices-table";
 import TopMarketsList from "./top-markets-list";
-import { usePrices, useAveragePrices } from "@/lib/hooks/use-prices";
+import { usePrices } from "@/lib/hooks/use-prices";
 import { GrapeIcon as Grain, Banana, Beef, Coffee } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
@@ -25,9 +25,27 @@ export default function DashboardView() {
   const [products, setProducts] = useState<
     { _id: string; name: string; category: string; description: string }[]
   >([]);
+  const [markets, setMarkets] = useState<
+    {
+      _id: string;
+      name: string;
+      location: string;
+      region: string;
+      country: string;
+    }[]
+  >([]);
   const [selectedProduct, setSelectedProduct] = useState("");
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [isLoadingMarkets, setIsLoadingMarkets] = useState(true);
   const [productError, setProductError] = useState(null);
+  const [priceSummary, setPriceSummary] = useState({
+    averagePrice: 0,
+    priceChangePercentage: 0,
+    topMarkets: [],
+    recentPrices: [],
+  });
+  const [isLoadingPriceSummary, setIsLoadingPriceSummary] = useState(true);
+  const [priceSummaryError, setPriceSummaryError] = useState(null);
 
   const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
@@ -99,84 +117,142 @@ export default function DashboardView() {
     fetchProducts();
   }, [API_URL]);
 
-  // Fetch prices data
-  const {
-    data: prices = [],
-    isLoading: isPricesLoading,
-    error: pricesError,
-  } = usePrices();
-
-  // Fetch market averages data
-  const {
-    data: marketAverages = [],
-    isLoading: isAveragesLoading,
-    error: averagesError,
-  } = useAveragePrices(selectedProduct);
-
-  // Get stats data from the API
-  const [statData, setStatData] = useState({
-    totalProducts: 0,
-    totalMarkets: 0,
-    avgPrice: 0,
-    priceChange: 0,
-  });
-  const [isStatsLoading, setIsStatsLoading] = useState(true);
-  const [statsError, setStatsError] = useState(null);
-
+  // Fetch markets from API
   useEffect(() => {
-    const fetchStats = async () => {
-      setIsStatsLoading(true);
-      setStatsError(null);
+    const fetchMarkets = async () => {
+      setIsLoadingMarkets(true);
 
       try {
-        // Fetch total products count
-        const productsResponse = await axios.get(`${API_URL}/products/count`);
-        const totalProducts = productsResponse.data?.count || 0;
+        const response = await axios.get(`${API_URL}/markets`);
 
-        // Fetch total markets count
-        const marketsResponse = await axios.get(`${API_URL}/markets/count`);
-        const totalMarkets = marketsResponse.data?.count || 0;
-
-        // Fetch average price and price change
-        const priceStatsResponse = await axios.get(`${API_URL}/prices/stats`);
-        const avgPrice = priceStatsResponse.data?.averagePrice || 0;
-        const priceChange = priceStatsResponse.data?.priceChangePercentage || 0;
-
-        setStatData({
-          totalProducts,
-          totalMarkets,
-          avgPrice,
-          priceChange,
-        });
+        if (response.data && Array.isArray(response.data)) {
+          setMarkets(response.data);
+        }
       } catch (error) {
-        console.error("Error fetching stats:", error);
-        setStatsError(
-          //@ts-expect-error
-          error.message || "Failed to load statistics"
-        );
+        console.error("Error fetching markets:", error);
 
-        // Use sample data as fallback
-        setStatData({
-          totalProducts: 24,
-          totalMarkets: 16,
-          avgPrice: 2250,
-          priceChange: +5.7,
-        });
+        // Fallback to sample markets
+        const sampleMarkets = [
+          {
+            _id: "67e6a142733aa3610bcae3e4",
+            name: "Nakasero Market",
+            location: "Kampala",
+            region: "Central",
+            country: "Uganda",
+          },
+          {
+            _id: "67e6a142733aa3610bcae3e6",
+            name: "Mbale Central Market",
+            location: "Mbale",
+            region: "Eastern",
+            country: "Uganda",
+          },
+          {
+            _id: "67e6a142733aa3610bcae3e5",
+            name: "Owino Market",
+            location: "Kampala",
+            region: "Central",
+            country: "Uganda",
+          },
+          {
+            _id: "67e6a142733aa3610bcae3e8",
+            name: "Mbarara Central Market",
+            location: "Mbarara",
+            region: "Western",
+            country: "Uganda",
+          },
+          {
+            _id: "67e6a142733aa3610bcae3e7",
+            name: "Gulu Main Market",
+            location: "Gulu",
+            region: "Northern",
+            country: "Uganda",
+          },
+          {
+            _id: "67f207275a55de78b22bf6f8",
+            name: "Bugema Market",
+            location: "Gayaza Road",
+            region: "Central",
+            country: "Uganda",
+          },
+        ];
+        setMarkets(sampleMarkets);
       } finally {
-        setIsStatsLoading(false);
+        setIsLoadingMarkets(false);
       }
     };
 
-    fetchStats();
+    fetchMarkets();
   }, [API_URL]);
 
+  // Fetch price summary when selected product changes
+  useEffect(() => {
+    const fetchPriceSummary = async () => {
+      if (!selectedProduct) return;
+
+      setIsLoadingPriceSummary(true);
+      setPriceSummaryError(null);
+
+      try {
+        const response = await axios.get(
+          `${API_URL}/prices/price-summary/${selectedProduct}`
+        );
+
+        if (response.data) {
+          setPriceSummary({
+            averagePrice: response.data.statistics.averagePrice || 0,
+            priceChangePercentage: response.data.statistics.priceRange || 0,
+            topMarkets: response.data.topMarkets || [],
+            recentPrices: response.data.recentPrices || [],
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching price summary:", error);
+        setPriceSummaryError(
+          //@ts-expect-error
+          error.message || "Failed to load price summary"
+        );
+
+        // Use sample data as fallback
+        setPriceSummary({
+          averagePrice: 2250,
+          priceChangePercentage: +5.7,
+          topMarkets: [],
+          recentPrices: [],
+        });
+      } finally {
+        setIsLoadingPriceSummary(false);
+      }
+    };
+
+    fetchPriceSummary();
+  }, [API_URL, selectedProduct]);
+
+  // Fetch prices data for the recent prices table
+  const { data: prices = [], isLoading: isPricesLoading } = usePrices(
+    selectedProduct !== "" ? selectedProduct : undefined
+  );
+
   // Get product name for display
-  const getProductName = (id: string) => {
-    const product = products.find((p) => p._id === id);
+  interface Product {
+    _id: string;
+    name: string;
+    category: string;
+    description: string;
+  }
+
+  const getProductName = (id: string): string => {
+    const product: Product | undefined = products.find((p) => p._id === id);
     return product ? product.name : "Selected Product";
   };
 
-  const error = productError || pricesError || averagesError || statsError;
+  const error = productError || priceSummaryError;
+
+  // Calculate stats from the fetched data
+  const totalProducts = products.length;
+  const totalMarkets = markets.length;
+  const avgPrice = priceSummary.averagePrice;
+  const priceChange = priceSummary.priceChangePercentage;
 
   return (
     <div className="container mx-auto space-y-6">
@@ -195,29 +271,29 @@ export default function DashboardView() {
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Products"
-          value={statData.totalProducts.toString()}
+          value={totalProducts.toString()}
           description="Different agricultural products tracked"
           icon={<Grain className="h-5 w-5 text-emerald-600" />}
-          isLoading={isStatsLoading}
+          isLoading={isLoadingProducts}
         />
 
         <StatCard
           title="Markets Covered"
-          value={statData.totalMarkets.toString()}
+          value={totalMarkets.toString()}
           description="Across different regions"
           icon={<Banana className="h-5 w-5 text-yellow-500" />}
-          isLoading={isStatsLoading}
+          isLoading={isLoadingMarkets}
         />
 
         <StatCard
           title="Avg. Price (UGX)"
-          value={statData.avgPrice.toLocaleString()}
-          description={`${statData.priceChange >= 0 ? "↑" : "↓"} ${Math.abs(
-            statData.priceChange
-          )}% from last month`}
+          value={avgPrice.toLocaleString()}
+          description={`${priceChange >= 0 ? "↑" : "↓"} ${Math.abs(
+            priceChange
+          )} :- Range from last month`}
           icon={<Beef className="h-5 w-5 text-red-500" />}
-          trend={statData.priceChange >= 0 ? "up" : "down"}
-          isLoading={isStatsLoading}
+          trend={priceChange >= 0 ? "up" : "down"}
+          isLoading={isLoadingPriceSummary}
         />
 
         <StatCard
@@ -225,7 +301,7 @@ export default function DashboardView() {
           value="5"
           description="Grains, Fruits, Vegetables, Meat, Beverages"
           icon={<Coffee className="h-5 w-5 text-amber-600" />}
-          isLoading={isStatsLoading}
+          isLoading={false}
         />
       </div>
 
@@ -264,13 +340,14 @@ export default function DashboardView() {
           <CardHeader>
             <CardTitle>Market Insights</CardTitle>
             <CardDescription>
-              Price comparison across different markets
+              Price comparison across different markets for{" "}
+              {getProductName(selectedProduct)}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <MarketInsightsChart
-              isLoading={isAveragesLoading}
-              data={marketAverages}
+              isLoading={isLoadingPriceSummary}
+              data={priceSummary.topMarkets || []}
             />
           </CardContent>
         </Card>
@@ -280,13 +357,22 @@ export default function DashboardView() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Recent Price Updates</CardTitle>
+            <CardTitle>
+              Recent Price Updates for {getProductName(selectedProduct)}
+            </CardTitle>
             <CardDescription>
               Latest price entries from various markets
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentPricesTable prices={prices} isLoading={isPricesLoading} />
+            <RecentPricesTable
+              prices={
+                priceSummary.recentPrices?.length > 0
+                  ? priceSummary.recentPrices
+                  : prices
+              }
+              isLoading={isLoadingPriceSummary || isPricesLoading}
+            />
           </CardContent>
         </Card>
 
@@ -299,8 +385,8 @@ export default function DashboardView() {
           </CardHeader>
           <CardContent>
             <TopMarketsList
-              markets={marketAverages}
-              isLoading={isAveragesLoading}
+              markets={priceSummary.topMarkets || []}
+              isLoading={isLoadingPriceSummary}
             />
           </CardContent>
         </Card>

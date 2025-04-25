@@ -30,12 +30,9 @@ export default function PriceOverviewChart({
     isLoading,
     error,
   } = usePriceTrends(productId, "all", 365);
-  interface ChartData {
-    month: string;
-    price: number;
-  }
-
-  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [chartData, setChartData] = useState<
+    { month: string; price: number }[]
+  >([]);
 
   useEffect(() => {
     if (trendData && trendData.historicalPrices) {
@@ -61,10 +58,9 @@ export default function PriceOverviewChart({
       // Group by month and calculate average price
       const monthlyData = processedData.reduce(
         (
-          acc: Record<
-            string,
-            { month: string; totalPrice: number; count: number }
-          >,
+          acc: {
+            [key: string]: { month: string; totalPrice: number; count: number };
+          },
           item
         ) => {
           if (!acc[item.month]) {
