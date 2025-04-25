@@ -36,6 +36,11 @@ export const addPrice = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" })
     }
 
+    // Check if user is agent or admin
+    if (req.user.role !== "agent" && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Only agents and admins can add price data" })
+    }
+
     // Validate product and market existence
     const existingProduct = await Product.findById(product)
     if (!existingProduct) return res.status(404).json({ message: "Product not found" })
@@ -55,6 +60,7 @@ export const addPrice = async (req, res) => {
       unit,
       lastUpdated: new Date(),
       historicalPrices: [], // Initialize historical prices if needed
+      addedBy: req.user._id, // Track who added the price
     })
 
     await newPrice.save()
@@ -162,8 +168,8 @@ export const getPriceTrends = async (req, res) => {
   try {
     const { product, market, days = 30 } = req.query
 
-    if (!product || !market) {
-      return res.status(400).json({ message: "Product and market are required" })
+    if (!product) {
+      return res.status(400).json({ message: "Product is required" })
     }
 
     // Calculate date range
@@ -171,12 +177,19 @@ export const getPriceTrends = async (req, res) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
-    // Fetch historical prices within the specified time frame
-    const prices = await Price.find({
+    // Build the query object
+    const query = {
       product,
-      market,
       date: { $gte: startDate, $lte: endDate },
-    }).sort({ date: 1 })
+    }
+
+    // Only add market to query if it's not "all"
+    if (market && market !== "all") {
+      query.market = market
+    }
+
+    // Fetch historical prices within the specified time frame
+    const prices = await Price.find(query).sort({ date: 1 }).populate("market", "name location region")
 
     if (prices.length < 2) {
       return res.status(200).json({ message: "Not enough data for trend analysis", prices })
@@ -195,9 +208,15 @@ export const getPriceTrends = async (req, res) => {
     // Identify anomalies
     const anomalies = identifyAnomalies(prices)
 
+    // Get product details
+    const productDetails = await Product.findById(product)
+
     res.status(200).json({
-      product,
-      market,
+      product: {
+        id: product,
+        name: productDetails ? productDetails.name : "Unknown Product",
+      },
+      market: market === "all" ? "All Markets" : market,
       trend,
       movingAverages: {
         sevenDay: movingAverages7,
@@ -205,7 +224,17 @@ export const getPriceTrends = async (req, res) => {
       },
       volatility,
       anomalies,
-      prices,
+      prices: prices.map((p) => ({
+        date: p.date,
+        price: p.price,
+        market: p.market
+          ? {
+              id: p.market._id,
+              name: p.market.name,
+              region: p.market.region || "Unknown",
+            }
+          : "Unknown Market",
+      })),
     })
   } catch (error) {
     console.error("Error fetching price trends:", error)
@@ -554,7 +583,7 @@ export const detectPriceAnomalies = async (req, res) => {
 // =========================
 export const getAveragePricePerMarket = async (req, res) => {
   try {
-    const { product, days = 30 } = req.query
+    const { product, market, days = 30 } = req.query
 
     if (!product) {
       return res.status(400).json({ message: "Product is required" })
@@ -565,12 +594,20 @@ export const getAveragePricePerMarket = async (req, res) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
+    // Build the match stage for aggregation
+    const matchStage = {
+      product: new mongoose.Types.ObjectId(product),
+      date: { $gte: startDate, $lte: endDate },
+    }
+
+    // Only add market to match stage if it's not "all"
+    if (market && market !== "all") {
+      matchStage.market = new mongoose.Types.ObjectId(market)
+    }
+
     const averagePrices = await Price.aggregate([
       {
-        $match: {
-          product: new mongoose.Types.ObjectId(product),
-          date: { $gte: startDate, $lte: endDate },
-        },
+        $match: matchStage,
       },
       {
         $group: {
@@ -793,7 +830,7 @@ export const getTrendingProducts = async (req, res) => {
 // =========================
 export const getProductTrend = async (req, res) => {
   try {
-    const { product, days = 30 } = req.query
+    const { product, market, days = 30 } = req.query
 
     if (!product) {
       return res.status(400).json({ message: "Product is required" })
@@ -804,13 +841,19 @@ export const getProductTrend = async (req, res) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
-    // Get historical prices across all markets
-    const prices = await Price.find({
+    // Build the query object
+    const query = {
       product,
       date: { $gte: startDate, $lte: endDate },
-    })
-      .sort({ date: 1 })
-      .populate("market", "name location region")
+    }
+
+    // Only add market to query if it's not "all"
+    if (market && market !== "all") {
+      query.market = market
+    }
+
+    // Get historical prices across all markets or specific market
+    const prices = await Price.find(query).sort({ date: 1 }).populate("market", "name location region")
 
     if (prices.length < 2) {
       return res.status(400).json({ message: "Insufficient data for trend analysis" })
@@ -828,6 +871,7 @@ export const getProductTrend = async (req, res) => {
         name: productDetails ? productDetails.name : "Unknown Product",
         category: productDetails ? productDetails.category : "Unknown Category",
       },
+      market: market === "all" ? "All Markets" : market,
       trend,
       analyzedPeriod: {
         startDate,
@@ -837,11 +881,13 @@ export const getProductTrend = async (req, res) => {
       prices: prices.map((p) => ({
         date: p.date,
         price: p.price,
-        market: {
-          id: p.market._id,
-          name: p.market.name,
-          region: p.market.region,
-        },
+        market: p.market
+          ? {
+              id: p.market._id,
+              name: p.market.name,
+              region: p.market.region || "Unknown",
+            }
+          : "Unknown Market",
       })),
     })
   } catch (error) {
@@ -938,8 +984,8 @@ export const analyzeSeasonalPrices = async (req, res) => {
   try {
     const { product, market, days = 365 } = req.query
 
-    if (!product || !market) {
-      return res.status(400).json({ message: "Product and market are required" })
+    if (!product) {
+      return res.status(400).json({ message: "Product is required" })
     }
 
     // Calculate date range
@@ -947,12 +993,19 @@ export const analyzeSeasonalPrices = async (req, res) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
-    // Get historical prices
-    const prices = await Price.find({
+    // Build the query object
+    const query = {
       product,
-      market,
       date: { $gte: startDate, $lte: endDate },
-    }).sort({ date: 1 })
+    }
+
+    // Only add market to query if it's not "all"
+    if (market && market !== "all") {
+      query.market = market
+    }
+
+    // Get historical prices
+    const prices = await Price.find(query).sort({ date: 1 })
 
     if (prices.length < 30) {
       return res.status(400).json({
@@ -967,17 +1020,24 @@ export const analyzeSeasonalPrices = async (req, res) => {
 
     // Get product and market details
     const productDetails = await Product.findById(product)
-    const marketDetails = await Market.findById(market)
+    let marketDetails = null
+
+    if (market && market !== "all") {
+      marketDetails = await Market.findById(market)
+    }
 
     res.status(200).json({
       product: {
         id: product,
         name: productDetails ? productDetails.name : "Unknown Product",
       },
-      market: {
-        id: market,
-        name: marketDetails ? marketDetails.name : "Unknown Market",
-      },
+      market:
+        market === "all"
+          ? { id: "all", name: "All Markets" }
+          : {
+              id: market,
+              name: marketDetails ? marketDetails.name : "Unknown Market",
+            },
       seasonality,
       analyzedPeriod: {
         startDate,
@@ -1001,7 +1061,7 @@ export const analyzeCorrelations = async (req, res) => {
       return res.status(400).json({ message: "Market is required" })
     }
 
-    // If specific products are provided, use them; otherwise analyze all products in the market
+    // If specific products are provided, use them;
     let productIds = []
     if (products) {
       productIds = products.split(",")
