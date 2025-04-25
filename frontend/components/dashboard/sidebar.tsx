@@ -149,11 +149,25 @@ export default function Sidebar() {
 
                 <div>
                   <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                    AI Predictions
+                    Data Entry
                   </div>
                   <div className="space-y-1">
-                    <NavItem href="#" icon={BrainCircuit}>
-                      Price Forecasts
+                    <NavItem href="/add-price" icon={PlusCircle}>
+                      Add Price Entry
+                    </NavItem>
+                    <NavItem href="#" icon={Upload}>
+                      Bulk Upload
+                    </NavItem>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="px-3 mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                    Analysis
+                  </div>
+                  <div className="space-y-1">
+                    <NavItem href="#" icon={BarChart}>
+                      Price Analytics
                     </NavItem>
                     <NavItem href="#" icon={TrendingUp}>
                       Market Trends
@@ -169,9 +183,6 @@ export default function Sidebar() {
                     Data Management
                   </div>
                   <div className="space-y-1">
-                    <NavItem href="#" icon={Upload}>
-                      Upload Data
-                    </NavItem>
                     <NavItem href="#" icon={Database}>
                       Data Sources
                     </NavItem>

@@ -124,7 +124,6 @@ export default function PriceTrendsView() {
 
         if (response.data && Array.isArray(response.data)) {
           setMarkets(response.data);
-          // Set the first market as default if available
           if (response.data.length > 0) {
             setSelectedMarket(response.data[0]._id);
           }
@@ -204,7 +203,7 @@ export default function PriceTrendsView() {
 
   // Helper function to generate sample trend data when API is not available
   interface HistoricalPrice {
-    date: string;
+    date: string | Date;
     price: number;
   }
 
@@ -256,13 +255,18 @@ export default function PriceTrendsView() {
   };
 
   // Use sample data for demo if API fails
-  const displayData =
-    trendData ||
-    generateSampleTrendData(
-      selectedProduct,
-      selectedMarket,
-      Number.parseInt(timeRange)
-    );
+  const displayData: SampleTrendData = trendData
+    ? {
+        product: selectedProduct,
+        market: selectedMarket,
+        trendPercentage: "0", // Default or calculated value
+        historicalPrices: trendData.historicalPrices,
+      }
+    : generateSampleTrendData(
+        selectedProduct,
+        selectedMarket,
+        Number.parseInt(timeRange)
+      );
   const isLoading = isLoadingProducts || isLoadingMarkets || isTrendLoading;
   const error = fetchError || trendError;
 

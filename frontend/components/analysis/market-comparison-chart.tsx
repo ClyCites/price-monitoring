@@ -25,7 +25,12 @@ export default function MarketComparisonChart({ data, isLoading, productName }: 
 
   // Format data for the chart, handling both string market and object market with name property
   const chartData = data.map((item) => ({
-    market: typeof item.market === "object" ? item.market?.name : item.market,
+    market:
+      typeof item.market === "string"
+        ? item.market
+        : typeof item.market === "object" && item.market
+          ? (item.market as any).name || "Unknown Market"
+          : "Unknown Market",
     price: item.price,
   }))
 

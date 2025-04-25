@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .container { width: 80%; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+    .header { background: #3498db; color: white; padding: 10px; text-align: center; font-size: 20px; }
+    .content { padding: 20px; }
+    .role-badge { 
+      display: inline-block; 
+      padding: 5px 10px; 
+      border-radius: 4px; 
+      font-weight: bold; 
+      margin: 5px 0;
+    }
+    .role-admin { background-color: #e74c3c; color: white; }
+    .role-agent { background-color: #f39c12; color: white; }
+    .role-user { background-color: #2ecc71; color: white; }
+    .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Role Update Notification</div>
+    <div class="content">
+      <p>Hi {{name}},</p>
+      <p>Your role in the Price Tracker system has been updated.</p>
+      <p>Your new role is: 
+        <span class="role-badge role-{{role}}">{{role}}</span>
+      </p>
+      <p>This change was made by: {{updatedBy}}</p>
+      
+      <h3>What this means:</h3>
+      {{#if role == "admin"}}
+        <p>As an <strong>Admin</strong>, you now have full access to all features of the system, including:</p>
+        <ul>
+          <li>Managing users and their roles</li>
+          <li>Managing all products, markets, and prices</li>
+          <li>Accessing all reports and analytics</li>
+          <li>System configuration</li>
+        </ul>
+      {{/if}}
+      
+      {{#if role == "agent"}}
+        <p>As an <strong>Agent</strong>, you can:</p>
+        <ul>
+          <li>Submit price data from the field</li>
+          <li>View markets and products</li>
+          <li>Access basic reports</li>
+        </ul>
+      {{/if}}
+      
+      {{#if role == "user"}}
+        <p>As a <strong>User</strong>, you can:</p>
+        <ul>
+          <li>View price data</li>
+          <li>Access basic reports</li>
+          <li>Set up price alerts</li>
+        </ul>
+      {{/if}}
+      
+      <p>If you have any questions about your new role, please contact the system administrator.</p>
+      <p>Best Regards,<br>Price Tracker Team</p>
+    </div>
+    <div class="footer">
+      © 2025 Price Tracker. All Rights Reserved.
+    </div>
+  </div>
+</body>
+</html>
