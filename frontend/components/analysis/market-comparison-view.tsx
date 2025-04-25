@@ -28,7 +28,7 @@ export default function MarketComparisonView() {
 
         if (response.data && Array.isArray(response.data)) {
           setProducts(response.data)
-          // Set the first product as default if available
+          // Set the first product's _id as default if available
           if (response.data.length > 0) {
             setSelectedProductId(response.data[0]._id)
           }

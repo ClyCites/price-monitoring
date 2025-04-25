@@ -37,9 +37,11 @@ export default function PriceTrendsView() {
 
         // Set default selections if data is available
         if (productsRes.data.length > 0) {
+          // Use the MongoDB _id instead of the product name
           setSelectedProduct(productsRes.data[0]._id)
         }
         if (marketsRes.data.length > 0) {
+          // Use the MongoDB _id instead of the market name
           setSelectedMarket(marketsRes.data[0]._id)
         }
       } catch (err) {
