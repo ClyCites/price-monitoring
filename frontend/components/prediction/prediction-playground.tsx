@@ -73,7 +73,7 @@ export default function PredictionPlayground() {
     }
 
     fetchData()
-  }, [])
+  }, [API_URL])
 
   // Fetch historical prices when product or market changes
   useEffect(() => {
@@ -103,7 +103,7 @@ export default function PredictionPlayground() {
     if (selectedProduct && selectedMarket) {
       fetchHistoricalPrices()
     }
-  }, [selectedProduct, selectedMarket])
+  }, [selectedProduct, selectedMarket, API_URL])
 
   const handlePredict = async () => {
     if (!selectedProduct || !selectedMarket) {
