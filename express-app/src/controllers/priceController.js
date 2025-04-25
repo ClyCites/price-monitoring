@@ -59,7 +59,6 @@ export const addPrice = async (req, res) => {
       quantity,
       unit,
       lastUpdated: new Date(),
-      historicalPrices: [], // Initialize historical prices if needed
       addedBy: req.user._id, // Track who added the price
     })
 
@@ -79,7 +78,7 @@ export const getPrices = async (req, res) => {
     const query = {}
 
     if (product) query.product = product
-    if (market) query.market = market
+    if (market && market !== "all") query.market = market
 
     // Add date range filter if provided
     if (startDate || endDate) {
@@ -122,10 +121,11 @@ export const getPriceById = async (req, res) => {
 // =========================
 export const updatePrice = async (req, res) => {
   try {
-    const { product, market } = req.body
+    // Find the existing price entry
+    const existingPrice = await Price.findById(req.params.id)
+    if (!existingPrice) return res.status(404).json({ message: "Price not found" })
 
-    const price = await Price.findById(req.params.id)
-    if (!price) return res.status(404).json({ message: "Price not found" })
+    const { product, market, price, date, productType, quantity, unit, currency } = req.body
 
     // Validate product and market existence if updated
     if (product) {
@@ -137,10 +137,32 @@ export const updatePrice = async (req, res) => {
       if (!existingMarket) return res.status(404).json({ message: "Market not found" })
     }
 
-    // Update price entry
-    Object.assign(price, req.body, { lastUpdated: new Date() })
-    await price.save()
-    res.status(200).json({ message: "Price updated successfully", price })
+    // Instead of updating the existing price entry, create a new one
+    // This preserves the historical record
+    const newPrice = new Price({
+      product: product || existingPrice.product,
+      market: market || existingPrice.market,
+      price: price || existingPrice.price,
+      currency: currency || existingPrice.currency,
+      date: date || existingPrice.date,
+      productType: productType || existingPrice.productType,
+      quantity: quantity || existingPrice.quantity,
+      unit: unit || existingPrice.unit,
+      lastUpdated: new Date(),
+      addedBy: req.user ? req.user._id : existingPrice.addedBy,
+    })
+
+    await newPrice.save()
+
+    res.status(200).json({
+      message: "Price updated successfully",
+      price: newPrice,
+      previousPrice: {
+        id: existingPrice._id,
+        price: existingPrice.price,
+        date: existingPrice.date,
+      },
+    })
   } catch (error) {
     res.status(500).json({ message: error.message })
   }
@@ -254,6 +276,7 @@ export const predictPrice = async (req, res) => {
     }
 
     // Get historical prices for the product in the specified market
+    // Use the Price collection directly instead of historicalPrices field
     const historicalPrices = await Price.find({ product, market }).sort({ date: 1 }).limit(90) // Use up to 90 days of historical data
 
     if (historicalPrices.length < 14) {
@@ -336,7 +359,14 @@ export const bulkImportPrices = async (req, res) => {
       if (!existingMarket) return res.status(404).json({ message: `Market not found for ID: ${market}` })
     }
 
-    await Price.insertMany(prices)
+    // Add addedBy field to each price entry if user is available
+    const pricesToInsert = prices.map((price) => ({
+      ...price,
+      addedBy: req.user ? req.user._id : undefined,
+      lastUpdated: new Date(),
+    }))
+
+    await Price.insertMany(pricesToInsert)
     res.status(201).json({ message: "Prices imported successfully" })
   } catch (error) {
     res.status(500).json({ message: error.message })
@@ -352,8 +382,9 @@ export const getHistoricalPrices = async (req, res) => {
     const query = {}
 
     if (product) query.product = product
-    if (market) query.market = market
+    if (market && market !== "all") query.market = market
 
+    // Get historical prices directly from the Price collection
     const historicalPrices = await Price.find(query)
       .sort({ date: -1 })
       .limit(Number(limit))
@@ -537,7 +568,7 @@ export const detectPriceAnomalies = async (req, res) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
-    // Get historical prices
+    // Get historical prices directly from the Price collection
     const prices = await Price.find({
       product,
       market,
@@ -703,7 +734,7 @@ export const getPriceVolatility = async (req, res) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - Number(days))
 
-    // Get historical prices
+    // Get historical prices directly from the Price collection
     const prices = await Price.find({
       product,
       market,
@@ -755,19 +786,37 @@ export const getTrendingProducts = async (req, res) => {
     startDate.setDate(startDate.getDate() - Number(days))
 
     // Find products with the most significant price changes
+    // This now uses the Price collection directly instead of historicalPrices
     const trendingProducts = await Price.aggregate([
       { $match: { date: { $gte: startDate, $lte: endDate } } },
       {
+        $sort: { date: 1 }, // Sort by date ascending to get first and last prices correctly
+      },
+      {
         $group: {
           _id: "$product",
-          firstPrice: { $first: "$price" },
-          lastPrice: { $last: "$price" },
+          prices: { $push: "$price" },
+          dates: { $push: "$date" },
           priceCount: { $sum: 1 },
         },
       },
       {
         $project: {
           productId: "$_id",
+          firstPrice: { $arrayElemAt: ["$prices", 0] },
+          lastPrice: { $arrayElemAt: ["$prices", -1] },
+          firstDate: { $arrayElemAt: ["$dates", 0] },
+          lastDate: { $arrayElemAt: ["$dates", -1] },
+          priceCount: 1,
+        },
+      },
+      {
+        $project: {
+          productId: 1,
+          firstPrice: 1,
+          lastPrice: 1,
+          firstDate: 1,
+          lastDate: 1,
           priceChange: { $subtract: ["$lastPrice", "$firstPrice"] },
           percentChange: {
             $multiply: [{ $divide: [{ $subtract: ["$lastPrice", "$firstPrice"] }, "$firstPrice"] }, 100],
