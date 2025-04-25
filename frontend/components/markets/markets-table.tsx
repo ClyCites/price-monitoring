@@ -22,23 +22,29 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pencil, Trash2, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
 import Link from "next/link";
-import type { Price } from "@/lib/api/prices";
 
-interface PricesTableProps {
-  prices: Price[];
+interface Market {
+  _id: string;
+  name: string;
+  location: string;
+  region: string;
+  country: string;
+}
+
+interface MarketsTableProps {
+  markets: Market[];
   isLoading: boolean;
   isDeleting: boolean;
   onDelete: (id: string) => void;
 }
 
-export default function PricesTable({
-  prices,
+export default function MarketsTable({
+  markets,
   isLoading,
   isDeleting,
   onDelete,
-}: PricesTableProps) {
+}: MarketsTableProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
@@ -65,10 +71,10 @@ export default function PricesTable({
     );
   }
 
-  if (prices.length === 0) {
+  if (markets.length === 0) {
     return (
       <div className="text-center p-8 border rounded-md">
-        <p className="text-muted-foreground">No price entries found</p>
+        <p className="text-muted-foreground">No markets found</p>
       </div>
     );
   }
@@ -79,31 +85,23 @@ export default function PricesTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Product</TableHead>
-              <TableHead>Market</TableHead>
-              <TableHead>Price (UGX)</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Quantity</TableHead>
-              <TableHead>Unit</TableHead>
+              <TableHead>Market Name</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Region</TableHead>
+              <TableHead>Country</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {prices.map((price: any) => (
-              <TableRow key={price._id}>
-                <TableCell className="font-medium">{price.product.name}</TableCell>
-                <TableCell>{price.market.name}</TableCell>
-                <TableCell>{price.price.toLocaleString()}</TableCell>
-                <TableCell>
-                  {typeof price.date === "string"
-                    ? format(new Date(price.date), "MMM dd, yyyy")
-                    : format(price.date, "MMM dd, yyyy")}
-                </TableCell>
-                <TableCell>{price.quantity}</TableCell>
-                <TableCell>{price.unit}</TableCell>
+            {markets.map((market) => (
+              <TableRow key={market._id}>
+                <TableCell className="font-medium">{market.name}</TableCell>
+                <TableCell>{market.location}</TableCell>
+                <TableCell>{market.region}</TableCell>
+                <TableCell>{market.country || "Uganda"}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
-                    <Link href={`/edit-price/${price._id}`}>
+                    <Link href={`/edit-market/${market._id}`}>
                       <Button variant="outline" size="icon">
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -111,10 +109,10 @@ export default function PricesTable({
                     <Button
                       variant="outline"
                       size="icon"
-                      onClick={() => confirmDelete(price._id)}
-                      disabled={isDeleting && deleteId === price._id}
+                      onClick={() => confirmDelete(market._id)}
+                      disabled={isDeleting && deleteId === market._id}
                     >
-                      {isDeleting && deleteId === price._id ? (
+                      {isDeleting && deleteId === market._id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                       ) : (
                         <Trash2 className="h-4 w-4" />
@@ -137,7 +135,7 @@ export default function PricesTable({
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete this
-              price entry from the database.
+              market from the database.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,9 +1,8 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
 import {
-  BarChart2,
   LineChart,
   Wheat,
   TrendingUp,
@@ -17,20 +16,25 @@ import {
   Map,
   LogIn,
   UserPlus,
-  House,
-} from "lucide-react"
+  Home,
+  PlusCircle,
+  Store,
+  BarChart,
+  ShoppingBasket,
+} from "lucide-react";
 
-import { Home } from "lucide-react"
-import Link from "next/link"
-import { useState } from "react"
-import { useAuth } from "@/lib/context/auth-context"
+import Link from "next/link";
+import { useState } from "react";
+import { useAuth } from "@/lib/context/auth-context";
+import { usePathname } from "next/navigation";
 
 export default function Sidebar() {
-  const { user } = useAuth()
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   function handleNavigation() {
-    setIsMobileMenuOpen(false)
+    setIsMobileMenuOpen(false);
   }
 
   function NavItem({
@@ -38,20 +42,26 @@ export default function Sidebar() {
     icon: Icon,
     children,
   }: {
-    href: string
-    icon: any
-    children: React.ReactNode
+    href: string;
+    icon: any;
+    children: React.ReactNode;
   }) {
+    const isActive = pathname === href;
+
     return (
       <Link
         href={href}
         onClick={handleNavigation}
-        className="flex items-center px-3 py-2 text-sm rounded-md transition-colors text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#1F1F23]"
+        className={`flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
+          isActive
+            ? "bg-gray-100 dark:bg-[#1F1F23] text-gray-900 dark:text-white"
+            : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-[#1F1F23]"
+        }`}
       >
         <Icon className="h-4 w-4 mr-3 flex-shrink-0" />
         {children}
       </Link>
-    )
+    );
   }
 
   return (
@@ -72,12 +82,17 @@ export default function Sidebar() {
             `}
       >
         <div className="h-full flex flex-col">
-          <Link href="/" className="h-16 px-6 flex items-center border-b border-gray-200 dark:border-[#1F1F23]">
+          <Link
+            href="/"
+            className="h-16 px-6 flex items-center border-b border-gray-200 dark:border-[#1F1F23]"
+          >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-green-600 rounded-md flex items-center justify-center text-white font-bold">
                 <Wheat className="h-5 w-5" />
               </div>
-              <span className="text-lg font-semibold hover:cursor-pointer text-gray-900 dark:text-white">ClyCites</span>
+              <span className="text-lg font-semibold hover:cursor-pointer text-gray-900 dark:text-white">
+                ClyCites
+              </span>
             </div>
           </Link>
 
@@ -108,17 +123,23 @@ export default function Sidebar() {
                     <NavItem href="/dashboard" icon={Home}>
                       Overview
                     </NavItem>
-                    <NavItem href="#" icon={BarChart2}>
-                      Add Prices
-                    </NavItem>
                     <NavItem href="/price-trends" icon={LineChart}>
                       Price Trends
                     </NavItem>
-                    <NavItem href="#" icon={House}>
+                    <NavItem href="/market-comparison" icon={BarChart}>
+                      Market Comparison
+                    </NavItem>
+                    <NavItem href="/add-market" icon={Store}>
                       Add Markets
                     </NavItem>
-                    <NavItem href="/market-comparison" icon={House}>
-                      Market Comparison
+                    <NavItem href="/markets" icon={Store}>
+                      Manage Markets
+                    </NavItem>
+                    <NavItem href="/add-price" icon={PlusCircle}>
+                      Add Prices
+                    </NavItem>
+                    <NavItem href="/prices" icon={Database}>
+                      Manage Prices
                     </NavItem>
                     <NavItem href="#" icon={Map}>
                       Regional Data
@@ -137,7 +158,7 @@ export default function Sidebar() {
                     <NavItem href="#" icon={TrendingUp}>
                       Market Trends
                     </NavItem>
-                    <NavItem href="#" icon={Wheat}>
+                    <NavItem href="#" icon={ShoppingBasket}>
                       Crop Analysis
                     </NavItem>
                   </div>
@@ -185,6 +206,5 @@ export default function Sidebar() {
         />
       )}
     </>
-  )
+  );
 }
-
