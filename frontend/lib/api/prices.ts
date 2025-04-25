@@ -2,10 +2,18 @@ import axios from "axios"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"
 
+export interface Market {
+  _id?: string;
+  name: string;
+  location: string;
+  region: string;
+  country?: string;
+}
+
 export interface Price {
   _id?: string
   product: string
-  market: string
+  market: Market | string
   price: number
   currency: string
   date: string | Date
