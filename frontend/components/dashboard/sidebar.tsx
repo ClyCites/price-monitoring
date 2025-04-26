@@ -187,7 +187,7 @@ export default function Sidebar() {
                     <NavItem href="#" icon={Database}>
                       Data Sources
                     </NavItem>
-                    <NavItem href="#" icon={Users2}>
+                    <NavItem href="/users" icon={Users2}>
                       User Access
                     </NavItem>
                   </div>
