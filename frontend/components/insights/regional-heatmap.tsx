@@ -93,8 +93,8 @@ export default function RegionalHeatmap({ data }: RegionalHeatmapProps) {
                           key={market.market}
                           className={`${getPriceColor(market.price)} p-2 rounded-md text-center`}
                         >
-                          <div className="text-xs font-medium">{market.market}</div>
-                          <div className="text-xs">{formatCurrency(market.price)}</div>
+                          <div className="text-xs font-medium dark:text-black">{market.market}</div>
+                          <div className="text-xs dark:text-black">{formatCurrency(market.price)}</div>
                         </div>
                       ))}
                     </div>
@@ -181,7 +181,7 @@ export default function RegionalHeatmap({ data }: RegionalHeatmapProps) {
               </thead>
               <tbody>
                 {marketData.map((item, index) => (
-                  <tr key={item.market} className={index % 2 === 0 ? "bg-white" : "bg-muted/30"}>
+                  <tr key={item.market} className={index % 2 === 0 ? "bg-muted/30" : "bg-muted/30"}>
                     <td className="p-2 text-xs">{item.market}</td>
                     <td className="p-2 text-xs">{item.region}</td>
                     <td className="p-2 text-xs text-right">{formatCurrency(item.price)}</td>
